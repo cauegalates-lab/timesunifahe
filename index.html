@@ -433,13 +433,6 @@
       text-shadow: 0 0 9px rgba(255, 118, 0, .18);
     }
 
-    .integrante-vazio .nome {
-      color: var(--muted);
-      font-size: .82em;
-      font-weight: 700;
-      letter-spacing: .02em;
-    }
-
     .valor-integrante {
       min-width: 0;
       color: var(--white);
@@ -729,21 +722,134 @@
       ANO: new Date().getFullYear()
     };
 
-    const EQUIPES_BASE = [
-      { id: "predadores", nome: "Predadores", logo: "assets/predadores.jpeg", metaPadrao: 36900 },
-      { id: "invictus", nome: "Invictus", logo: "assets/invictus.jpeg", metaPadrao: 32675 },
-      { id: "evolution", nome: "Evolution", logo: "assets/evolution.jpeg", metaPadrao: 33450 },
-      { id: "vip", nome: "VIP", logo: "assets/vip.jpeg", metaPadrao: 38450 },
-      { id: "winx", nome: "Winx", logo: "assets/winx.jpeg", metaPadrao: 29225 },
-      { id: "alfas", nome: "Alfas", logo: "assets/alfas.jpeg", metaPadrao: 36900 },
-      { id: "goat", nome: "Goat", logo: "assets/goat.jpeg", metaPadrao: 32675 }
+    const EQUIPES = [
+      {
+        id: "predadores",
+        nome: "Predadores",
+        logo: "assets/predadores.jpeg",
+        metaPadrao: 36900,
+        integrantes: [
+          ["Gabriel Gorgonio", 11216],
+          ["Maria Laura", 13522],
+          ["Raíssa Fontoura", 7267],
+          ["Rodolfo Henrique", 4285]
+        ],
+        integrantesSemana1: [
+          ["Camilly Longhi", 8922],
+          ["Paola Fernandes", 8975],
+          ["Jane menezes", 4449]
+        ]
+      },
+      {
+        id: "invictus",
+        nome: "Invictus",
+        logo: "assets/invictus.jpeg",
+        metaPadrao: 32675,
+        integrantes: [
+          ["Giseli de Jesus", 12367],
+          ["Ana Kelly", 3972],
+          ["Leticia Pereira", 7454],
+          ["Cadiane", 6893],
+          ["Ana Luiza", 1814]
+        ],
+        integrantesSemana1: [
+          ["Letícia Goretti", 0],
+          ["Ana Kelly", 3972],
+          ["Ana Luiza", 1814],
+          ["Leticia Pereira", 7454]
+        ]
+      },
+      {
+        id: "evolution",
+        nome: "Evolution",
+        logo: "assets/evolution.jpeg",
+        metaPadrao: 33450,
+        integrantes: [
+          ["Cauê Galates", 6803],
+          ["Daniela Moura", 5709],
+          ["Gabrielle Carvalho", 9047],
+          ["Kevin Cristovão", 10202]
+        ],
+        integrantesSemana1: [
+          ["Cauê Galates", 6803],
+          ["Lara Baptista", 8984],
+          ["Daniela Moura", 5709],
+          ["Letícia Vieira", 19199]
+        ]
+      },
+      {
+        id: "vip",
+        nome: "VIP",
+        logo: "assets/vip.jpeg",
+        metaPadrao: 38450,
+        integrantes: [
+          ["Alana Santos", 15734],
+          ["Camilly Longhi", 8922],
+          ["Jane menezes", 4449],
+          ["Paola Fernandes", 8975]
+        ],
+        integrantesSemana1: [
+          ["Maria Laura", 13522],
+          ["Gabriel Gorgonio", 11216],
+          ["Raíssa Fontoura", 7267],
+          ["Rodolfo Henrique", 4285]
+        ]
+      },
+      {
+        id: "winx",
+        nome: "Winx",
+        logo: "assets/winx.jpeg",
+        metaPadrao: 29225,
+        integrantes: [
+          ["Letícia Vieira", 19199],
+          ["Vinicius Ribeiro", 20142],
+          ["Chrystian", 7739],
+          ["Melissa Ferreira", 4387]
+        ],
+        integrantesSemana1: [
+          ["Vinicius Ribeiro", 20142],
+          ["Gabrielle Carvalho", 9047],
+          ["Melissa Ferreira", 4387],
+          ["Kevin Cristovão", 10202]
+        ]
+      },
+      {
+        id: "alfas",
+        nome: "Alfas",
+        logo: "assets/alfas.jpeg",
+        metaPadrao: 36900,
+        integrantes: [
+          ["Nathália", 8230],
+          ["Fabiana Godoy", 6104],
+          ["Bruna Moraes", 4104],
+          ["Gabrielle Andrade", 11509]
+        ],
+        integrantesSemana1: [
+          ["Fabiana Godoy", 6104],
+          ["Bruna Moraes", 4104],
+          ["Nathália", 8230],
+          ["Gabrielle Andrade", 11509]
+        ]
+      },
+      {
+        id: "goat",
+        nome: "Goat",
+        logo: "assets/goat.jpeg",
+        metaPadrao: 32675,
+        integrantes: [
+          ["Beatriz Cunha", 17006],
+          ["Lara Baptista", 8984],
+          ["Lucas Eduardo", 6484],
+          ["Estephany", 5286]
+        ],
+        integrantesSemana1: [
+          ["Beatriz Cunha", 17006],
+          ["Lucas Eduardo", 6484],
+          ["Alana Santos", 15734],
+          ["Eduardo Rogério", 0]
+        ]
+      }
     ];
-
-    // Os nomes dos integrantes chegam pelo Apps Script conforme a semana.
-    let EQUIPES = EQUIPES_BASE.map(equipe => ({
-      ...equipe,
-      integrantes: []
-    }));
 
     const NOMES_MESES = [
       "janeiro", "fevereiro", "março", "abril", "maio", "junho",
@@ -764,17 +870,8 @@
     const liveTexto = document.getElementById("liveTexto");
     const botoesPeriodo = [...document.querySelectorAll(".semana-btn")];
 
-    function descobrirSemanaAtual() {
-      const dia = new Date().getDate();
-
-      if (dia <= 5) return 1;
-      if (dia <= 12) return 2;
-      if (dia <= 19) return 3;
-      return 4;
-    }
-
     let modoAtivo = "semana";
-    let semanaAtiva = descobrirSemanaAtual();
+    let semanaAtiva = Math.min(4, Math.max(1, Math.ceil(new Date().getDate() / 7)));
     let timerAtualizacao = null;
     let dadosAtuais = criarDadosDemonstracao();
     let metasAtuais = criarMetasDemonstracao();
@@ -795,48 +892,27 @@
       return `R$ ${Math.round(Number(valor) || 0).toLocaleString("pt-BR")}`;
     }
 
+    function obterIntegrantesEquipe(equipe) {
+      const usarPrimeiraSemana = modoAtivo === "semana" && semanaAtiva === 1;
+
+      return usarPrimeiraSemana && Array.isArray(equipe.integrantesSemana1)
+        ? equipe.integrantesSemana1
+        : equipe.integrantes;
+    }
+
     function criarDadosDemonstracao() {
-      return {};
-    }
+      const vendedores = {};
 
-    function criarEquipesVazias() {
-      return EQUIPES_BASE.map(equipe => ({
-        ...equipe,
-        integrantes: []
-      }));
-    }
+      EQUIPES.forEach(equipe => {
+        const listas = [equipe.integrantes, equipe.integrantesSemana1 || []];
 
-    function normalizarEquipes(equipesServidor) {
-      const mapaServidor = new Map(
-        (Array.isArray(equipesServidor) ? equipesServidor : [])
-          .map(equipe => [
-            String(equipe?.id || "").trim().toLowerCase(),
-            equipe
-          ])
-          .filter(([id]) => id)
-      );
-
-      return EQUIPES_BASE.map(equipeBase => {
-        const equipeServidor = mapaServidor.get(equipeBase.id) || {};
-        const integrantes = (Array.isArray(equipeServidor.integrantes)
-          ? equipeServidor.integrantes
-          : []
-        )
-          .map(integrante => {
-            const nome = typeof integrante === "string"
-              ? integrante
-              : integrante?.nome;
-
-            return [String(nome || "").trim()];
-          })
-          .filter(([nome]) => nome);
-
-        return {
-          ...equipeBase,
-          nome: String(equipeServidor.nome || equipeBase.nome).trim(),
-          integrantes
-        };
+        listas.flat().forEach(([nome, valor]) => {
+          const chave = normalizarNome(nome);
+          vendedores[chave] = Math.max(Number(vendedores[chave] || 0), Number(valor) || 0);
+        });
       });
+
+      return vendedores;
     }
 
     function criarMetasDemonstracao() {
@@ -892,23 +968,17 @@
     }
 
     function criarCardEquipe(equipe) {
-      const realizado = equipe.integrantes.reduce((total, [nome]) => total + valorVendedor(nome), 0);
+      const integrantes = obterIntegrantesEquipe(equipe);
+      const realizado = integrantes.reduce((total, [nome]) => total + valorVendedor(nome), 0);
       const meta = metaEquipe(equipe);
       const percentual = meta > 0 ? Math.round((realizado / meta) * 100) : 0;
 
-      const linhas = equipe.integrantes.length
-        ? equipe.integrantes.map(([nome]) => `
-            <div class="integrante">
-              <span class="nome" title="${nome}">${nome}</span>
-              <span class="valor-integrante" data-vendedor="${normalizarNome(nome)}">${formatarMoeda(valorVendedor(nome))}</span>
-            </div>
-          `).join("")
-        : `
-            <div class="integrante integrante-vazio">
-              <span class="nome">Aguardando App Script</span>
-              <span class="valor-integrante">—</span>
-            </div>
-          `;
+      const linhas = integrantes.map(([nome]) => `
+        <div class="integrante">
+          <span class="nome" title="${nome}">${nome}</span>
+          <span class="valor-integrante" data-vendedor="${normalizarNome(nome)}">${formatarMoeda(valorVendedor(nome))}</span>
+        </div>
+      `).join("");
 
       return `
         <article class="card equipe-card" data-equipe="${equipe.id}" aria-label="Equipe ${equipe.nome}">
@@ -938,7 +1008,7 @@
 
     function renderizarPainel() {
       const totalGeral = EQUIPES.reduce((total, equipe) => {
-        return total + equipe.integrantes.reduce((soma, [nome]) => soma + valorVendedor(nome), 0);
+        return total + obterIntegrantesEquipe(equipe).reduce((soma, [nome]) => soma + valorVendedor(nome), 0);
       }, 0);
 
       painel.innerHTML = `
@@ -1059,7 +1129,6 @@
       carregando = true;
 
       if (!apiConfigurada()) {
-        EQUIPES = criarEquipesVazias();
         dadosAtuais = criarDadosDemonstracao();
         metasAtuais = criarMetasDemonstracao();
         periodoServidor = null;
@@ -1083,7 +1152,7 @@
         });
         const sucesso = resposta && (resposta.ok === true || resposta.sucesso === true);
 
-        if (!sucesso || !resposta.vendedores || !Array.isArray(resposta.equipes)) {
+        if (!sucesso || !resposta.vendedores) {
           throw new Error(resposta?.erro || resposta?.mensagem || "Resposta inválida do Apps Script.");
         }
 
@@ -1094,7 +1163,6 @@
           (modoSolicitado === "semana" && semanaSolicitada !== semanaAtiva)
         ) return;
 
-        EQUIPES = normalizarEquipes(resposta.equipes);
         dadosAtuais = normalizarMapaVendedores(
           resposta.vendedores,
           resposta.vendedoresLista
