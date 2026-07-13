@@ -30,6 +30,66 @@ var CONFIG_EQUIPES = {
 
 
 /**
+ * METAS SEMANAIS DAS EQUIPES
+ *
+ * Edite somente os valores abaixo quando quiser alterar as metas.
+ * No botão MÊS, a meta mensal é a soma das quatro semanas.
+ * Opcional: você pode adicionar `mes: 150000` em uma equipe para
+ * substituir a soma automática por uma meta mensal fixa.
+ */
+var CONFIG_METAS_EQUIPES = {
+  predadores: {
+    semana1: 36900,
+    semana2: 36900,
+    semana3: 36900,
+    semana4: 36900
+  },
+
+  invictus: {
+    semana1: 32675,
+    semana2: 32675,
+    semana3: 32675,
+    semana4: 32675
+  },
+
+  evolution: {
+    semana1: 33450,
+    semana2: 33450,
+    semana3: 33450,
+    semana4: 33450
+  },
+
+  vip: {
+    semana1: 38450,
+    semana2: 38450,
+    semana3: 38450,
+    semana4: 38450
+  },
+
+  winx: {
+    semana1: 29225,
+    semana2: 29225,
+    semana3: 29225,
+    semana4: 29225
+  },
+
+  alfas: {
+    semana1: 36900,
+    semana2: 36900,
+    semana3: 36900,
+    semana4: 36900
+  },
+
+  goat: {
+    semana1: 32675,
+    semana2: 32675,
+    semana3: 32675,
+    semana4: 32675
+  }
+};
+
+
+/**
  * Único doGet do projeto.
  *
  * Painel R2:
@@ -257,6 +317,8 @@ function montarDadosEquipes(mes, ano, semana, visao) {
     ? obterPeriodoMes(mes, ano)
     : obterPeriodoSemana(semana, mes, ano);
 
+  var metas = obterMetasEquipes(semana, visao);
+
   var ultimaLinha = aba.getLastRow();
 
   if (ultimaLinha < CONFIG_EQUIPES.LINHA_INICIAL) {
@@ -265,7 +327,8 @@ function montarDadosEquipes(mes, ano, semana, visao) {
       ano,
       semana,
       visao,
-      periodo
+      periodo,
+      metas
     );
   }
 
@@ -379,13 +442,14 @@ function montarDadosEquipes(mes, ano, semana, visao) {
     ano: ano,
     vendedores: vendedores,
     vendedoresLista: vendedoresLista,
+    metas: metas,
     totalGeral: totalGeral,
     atualizadoEm: new Date().toISOString()
   };
 }
 
 
-function criarRetornoEquipesVazio(mes, ano, semana, visao, periodo) {
+function criarRetornoEquipesVazio(mes, ano, semana, visao, periodo, metas) {
   return {
     sucesso: true,
     painel: "equipes",
@@ -396,9 +460,50 @@ function criarRetornoEquipesVazio(mes, ano, semana, visao, periodo) {
     ano: ano,
     vendedores: {},
     vendedoresLista: [],
+    metas: metas || obterMetasEquipes(semana, visao),
     totalGeral: 0,
     atualizadoEm: new Date().toISOString()
   };
+}
+
+
+/* =========================================================
+   METAS DAS EQUIPES
+========================================================= */
+
+function obterMetasEquipes(semana, visao) {
+  var metas = {};
+  var chaveSemana = "semana" + semana;
+  var modoMes = normalizarTexto(visao) === "MES";
+
+  Object.keys(CONFIG_METAS_EQUIPES).forEach(function(equipeId) {
+    var configuracao = CONFIG_METAS_EQUIPES[equipeId] || {};
+
+    if (modoMes) {
+      if (
+        configuracao.mes !== undefined &&
+        configuracao.mes !== null &&
+        configuracao.mes !== ""
+      ) {
+        metas[equipeId] = converterNumeroEquipes(configuracao.mes);
+        return;
+      }
+
+      metas[equipeId] =
+        converterNumeroEquipes(configuracao.semana1) +
+        converterNumeroEquipes(configuracao.semana2) +
+        converterNumeroEquipes(configuracao.semana3) +
+        converterNumeroEquipes(configuracao.semana4);
+
+      return;
+    }
+
+    metas[equipeId] = converterNumeroEquipes(
+      configuracao[chaveSemana]
+    );
+  });
+
+  return metas;
 }
 
 

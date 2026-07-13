@@ -560,11 +560,16 @@
       text-align: center;
     }
 
-    .marca-simbolo {
-      color: var(--white);
-      font-size: clamp(22px, 2vw, 39px);
-      line-height: 1;
-      text-shadow: 0 0 16px rgba(25, 201, 255, .35);
+    .marca-logo {
+      display: block;
+      width: clamp(30px, 2.55vw, 49px);
+      height: clamp(38px, 3.15vw, 60px);
+      object-fit: contain;
+      object-position: center;
+      filter:
+        brightness(0) invert(1)
+        drop-shadow(0 0 8px rgba(25, 201, 255, .42))
+        drop-shadow(0 0 15px rgba(25, 201, 255, .16));
     }
 
     .marca-nome {
@@ -696,7 +701,7 @@
         id: "predadores",
         nome: "Predadores",
         logo: "assets/predadores.jpeg",
-        meta: 36900,
+        metaPadrao: 36900,
         integrantes: [
           ["Gabriel Gorgonio", 11216],
           ["Maria Laura", 13522],
@@ -708,12 +713,12 @@
         id: "invictus",
         nome: "Invictus",
         logo: "assets/invictus.jpeg",
-        meta: 32675,
+        metaPadrao: 32675,
         integrantes: [
           ["Giseli de Jesus", 12367],
           ["Ana Kelly", 3972],
           ["Leticia Pereira", 7454],
-          ["Cadiane", 6893],
+          ["Carliane", 6893],
           ["Ana Luiza", 1814]
         ]
       },
@@ -721,7 +726,7 @@
         id: "evolution",
         nome: "Evolution",
         logo: "assets/evolution.jpeg",
-        meta: 33450,
+        metaPadrao: 33450,
         integrantes: [
           ["Cauê Galates", 6803],
           ["Daniela Moura", 5709],
@@ -733,7 +738,7 @@
         id: "vip",
         nome: "VIP",
         logo: "assets/vip.jpeg",
-        meta: 38450,
+        metaPadrao: 38450,
         integrantes: [
           ["Alana Santos", 15734],
           ["Camilly Longhi", 8922],
@@ -745,7 +750,7 @@
         id: "winx",
         nome: "Winx",
         logo: "assets/winx.jpeg",
-        meta: 29225,
+        metaPadrao: 29225,
         integrantes: [
           ["Letícia Vieira", 19199],
           ["Vinicius Ribeiro", 20142],
@@ -757,7 +762,7 @@
         id: "alfas",
         nome: "Alfas",
         logo: "assets/alfas.jpeg",
-        meta: 36900,
+        metaPadrao: 36900,
         integrantes: [
           ["Nathália", 8230],
           ["Fabiana Godoy", 6104],
@@ -769,7 +774,7 @@
         id: "goat",
         nome: "Goat",
         logo: "assets/goat.jpeg",
-        meta: 32675,
+        metaPadrao: 32675,
         integrantes: [
           ["Beatriz Cunha", 17006],
           ["Lara Baptista", 8984],
@@ -802,6 +807,7 @@
     let semanaAtiva = Math.min(4, Math.max(1, Math.ceil(new Date().getDate() / 7)));
     let timerAtualizacao = null;
     let dadosAtuais = criarDadosDemonstracao();
+    let metasAtuais = criarMetasDemonstracao();
     let carregando = false;
     let requisicaoAtual = 0;
     let periodoServidor = null;
@@ -827,6 +833,29 @@
         });
       });
       return vendedores;
+    }
+
+    function criarMetasDemonstracao() {
+      return EQUIPES.reduce((metas, equipe) => {
+        metas[equipe.id] = Number(equipe.metaPadrao) || 0;
+        return metas;
+      }, {});
+    }
+
+    function normalizarMetas(metasServidor) {
+      const metas = criarMetasDemonstracao();
+
+      Object.entries(metasServidor || {}).forEach(([equipeId, valor]) => {
+        const chave = String(equipeId || "").trim().toLowerCase();
+        if (!chave) return;
+        metas[chave] = Number(valor) || 0;
+      });
+
+      return metas;
+    }
+
+    function metaEquipe(equipe) {
+      return Number(metasAtuais[equipe.id]) || 0;
     }
 
     function normalizarMapaVendedores(vendedores, vendedoresLista = []) {
@@ -860,7 +889,8 @@
 
     function criarCardEquipe(equipe) {
       const realizado = equipe.integrantes.reduce((total, [nome]) => total + valorVendedor(nome), 0);
-      const percentual = equipe.meta > 0 ? Math.round((realizado / equipe.meta) * 100) : 0;
+      const meta = metaEquipe(equipe);
+      const percentual = meta > 0 ? Math.round((realizado / meta) * 100) : 0;
 
       const linhas = equipe.integrantes.map(([nome]) => `
         <div class="integrante">
@@ -880,7 +910,7 @@
           <div class="equipe-kpis">
             <div class="kpi">
               <span class="kpi-label">Meta</span>
-              <strong class="kpi-valor meta">${formatarMoeda(equipe.meta)}</strong>
+              <strong class="kpi-valor meta">${formatarMoeda(meta)}</strong>
             </div>
             <div class="kpi">
               <span class="kpi-label">Realizado</span>
@@ -908,7 +938,7 @@
           <div class="hud">
             <div class="hud-ring"></div>
             <div class="marca-conteudo">
-              <span class="marca-simbolo">☆</span>
+              <img class="marca-logo" src="assets/unifahe-icon.png" alt="Símbolo da UNIFAHE">
               <strong class="marca-nome">UNIFAHE</strong>
               <span class="marca-sub">Faculdade a distância</span>
             </div>
@@ -1019,6 +1049,7 @@
 
       if (!apiConfigurada()) {
         dadosAtuais = criarDadosDemonstracao();
+        metasAtuais = criarMetasDemonstracao();
         periodoServidor = null;
         renderizarPainel();
         atualizarCabecalho();
@@ -1055,6 +1086,7 @@
           resposta.vendedores,
           resposta.vendedoresLista
         );
+        metasAtuais = normalizarMetas(resposta.metas);
         periodoServidor = resposta.periodo || null;
         renderizarPainel();
         atualizarCabecalho(periodoServidor);
