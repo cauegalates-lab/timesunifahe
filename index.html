@@ -643,6 +643,32 @@
       .live-dot, .hud-ring, .valor-integrante.loading { animation: none; }
       .semana-btn { transition: none; }
     }
+
+
+    .developer-credit {
+      position: fixed;
+      left: 50%;
+      bottom: 6px;
+      transform: translateX(-50%);
+      z-index: 1000;
+      color: rgba(120, 204, 235, .42);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      pointer-events: none;
+      user-select: none;
+      text-shadow: 0 0 8px rgba(25, 201, 255, .14);
+    }
+
+    @media (max-width: 600px) {
+      .developer-credit {
+        bottom: 4px;
+        font-size: 8px;
+        letter-spacing: .08em;
+      }
+    }
   </style>
 </head>
 <body>
@@ -718,7 +744,7 @@
           ["Giseli de Jesus", 12367],
           ["Ana Kelly", 3972],
           ["Leticia Pereira", 7454],
-          ["Carliane", 6893],
+          ["Cadiane", 6893],
           ["Ana Luiza", 1814]
         ]
       },
@@ -1149,5 +1175,9 @@
     atualizarDados();
     programarAtualizacao();
   </script>
+  <div class="developer-credit" aria-hidden="true">
+    Desenvolvido por Cauê Galates
+  </div>
+
 </body>
 </html>
