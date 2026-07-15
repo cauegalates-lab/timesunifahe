@@ -727,7 +727,6 @@
         id: "predadores",
         nome: "Predadores",
         logo: "assets/predadores.jpeg",
-        metaPadrao: 36900,
         integrantes: [
           ["Gabriel Gorgonio", 11216],
           ["Maria Laura", 13522],
@@ -744,7 +743,6 @@
         id: "invictus",
         nome: "Invictus",
         logo: "assets/invictus.jpeg",
-        metaPadrao: 32675,
         integrantes: [
           ["Giseli de Jesus", 12367],
           ["Ana Kelly", 3972],
@@ -763,7 +761,6 @@
         id: "evolution",
         nome: "Evolution",
         logo: "assets/evolution.jpeg",
-        metaPadrao: 33450,
         integrantes: [
           ["Cauê Galates", 6803],
           ["Daniela Moura", 5709],
@@ -781,7 +778,6 @@
         id: "vip",
         nome: "VIP",
         logo: "assets/vip.jpeg",
-        metaPadrao: 34200,
         integrantes: [
           ["Letícia Vieira", 19199],
           ["Vinicius Ribeiro", 20142],
@@ -799,7 +795,6 @@
         id: "winx",
         nome: "Winx",
         logo: "assets/winx.jpeg",
-        metaPadrao: 38450,
         integrantes: [
           ["Alana Santos", 15734],
           ["Camilly Longhi", 8922],
@@ -817,7 +812,6 @@
         id: "alfas",
         nome: "Alfas",
         logo: "assets/alfas.jpeg",
-        metaPadrao: 36900,
         integrantes: [
           ["Nathália", 8230],
           ["Fabiana Godoy", 6104],
@@ -835,7 +829,6 @@
         id: "goat",
         nome: "Goat",
         logo: "assets/goat.jpeg",
-        metaPadrao: 32675,
         integrantes: [
           ["Beatriz Cunha", 17006],
           ["Lara Baptista", 8984],
@@ -874,7 +867,7 @@
     let semanaAtiva = Math.min(4, Math.max(1, Math.ceil(new Date().getDate() / 7)));
     let timerAtualizacao = null;
     let dadosAtuais = criarDadosDemonstracao();
-    let metasAtuais = criarMetasDemonstracao();
+    let metasAtuais = {};
     let carregando = false;
     let requisicaoAtual = 0;
     let periodoServidor = null;
@@ -915,15 +908,8 @@
       return vendedores;
     }
 
-    function criarMetasDemonstracao() {
-      return EQUIPES.reduce((metas, equipe) => {
-        metas[equipe.id] = Number(equipe.metaPadrao) || 0;
-        return metas;
-      }, {});
-    }
-
     function normalizarMetas(metasServidor) {
-      const metas = criarMetasDemonstracao();
+      const metas = {};
 
       Object.entries(metasServidor || {}).forEach(([equipeId, valor]) => {
         const chave = String(equipeId || "").trim().toLowerCase();
@@ -1130,7 +1116,7 @@
 
       if (!apiConfigurada()) {
         dadosAtuais = criarDadosDemonstracao();
-        metasAtuais = criarMetasDemonstracao();
+        metasAtuais = {};
         periodoServidor = null;
         renderizarPainel();
         atualizarCabecalho();
