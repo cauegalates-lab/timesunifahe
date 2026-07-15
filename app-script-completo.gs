@@ -62,14 +62,14 @@ var CONFIG_METAS_EQUIPES = {
   vip: {
     semana1: 38450,
     semana2: 38450,
-    semana3: 38450,
+    semana3: 34225,
     semana4: 38450
   },
 
   winx: {
     semana1: 29225,
     semana2: 29225,
-    semana3: 29225,
+    semana3: 33450,
     semana4: 29225
   },
 
@@ -271,33 +271,48 @@ function responderEquipes(e) {
     semana
   ].join("_");
 
-  var json = cache.get(cacheKey);
+  var jsonCache = cache.get(cacheKey);
+  var dadosResposta;
 
   try {
-    if (!json) {
-      json = JSON.stringify(
-        montarDadosEquipes(mes, ano, semana, visao)
+    if (jsonCache) {
+      dadosResposta = JSON.parse(jsonCache);
+    } else {
+      dadosResposta = montarDadosEquipes(
+        mes,
+        ano,
+        semana,
+        visao
       );
 
       cache.put(
         cacheKey,
-        json,
+        JSON.stringify(dadosResposta),
         CONFIG_EQUIPES.CACHE_SEGUNDOS
       );
     }
+
+    // As vendas continuam em cache, mas as metas são lidas da
+    // configuração atual em toda requisição. Isso evita exibir
+    // metas antigas após uma alteração no Apps Script.
+    dadosResposta.metas = obterMetasEquipes(semana, visao);
   } catch (erro) {
-    json = JSON.stringify({
+    dadosResposta = {
       sucesso: false,
       painel: "equipes",
       visao: visao.toLowerCase(),
       mensagem: erro.message,
       vendedores: {},
       vendedoresLista: [],
+      metas: obterMetasEquipes(semana, visao),
       totalGeral: 0
-    });
+    };
   }
 
-  return criarResposta(json, callback);
+  return criarResposta(
+    JSON.stringify(dadosResposta),
+    callback
+  );
 }
 
 
