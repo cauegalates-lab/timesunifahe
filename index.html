@@ -185,9 +185,9 @@
 
     .semana-btn {
       position: relative;
-      min-width: 96px;
+      min-width: 82px;
       height: 38px;
-      padding: 0 12px;
+      padding: 0 10px;
       color: #9fc8de;
       font-size: 12px;
       font-weight: 850;
@@ -226,7 +226,7 @@
     }
 
     .semana-btn[data-filtro="mes"] {
-      min-width: 82px;
+      min-width: 70px;
       color: var(--cyan-2);
       border-color: rgba(25, 201, 255, .58);
     }
@@ -690,6 +690,7 @@
           <button class="semana-btn" type="button" data-filtro="semana" data-semana="2">2ª semana</button>
           <button class="semana-btn" type="button" data-filtro="semana" data-semana="3">3ª semana</button>
           <button class="semana-btn" type="button" data-filtro="semana" data-semana="4">4ª semana</button>
+          <button class="semana-btn" type="button" data-filtro="semana" data-semana="5">5ª semana</button>
           <button class="semana-btn" type="button" data-filtro="mes">Mês</button>
         </nav>
 
@@ -853,7 +854,8 @@
       1: [1, 4],
       2: [6, 11],
       3: [13, 18],
-      4: [20, 31]
+      4: [20, 25],
+      5: [27, 31]
     };
 
     const painel = document.getElementById("painel");
@@ -863,8 +865,18 @@
     const liveTexto = document.getElementById("liveTexto");
     const botoesPeriodo = [...document.querySelectorAll(".semana-btn")];
 
+    function descobrirSemanaAtualLocal(data = new Date()) {
+      const dia = data.getDate();
+
+      if (dia <= 5) return 1;
+      if (dia <= 12) return 2;
+      if (dia <= 19) return 3;
+      if (dia <= 26) return 4;
+      return 5;
+    }
+
     let modoAtivo = "semana";
-    let semanaAtiva = Math.min(4, Math.max(1, Math.ceil(new Date().getDate() / 7)));
+    let semanaAtiva = descobrirSemanaAtualLocal();
     let timerAtualizacao = null;
     let dadosAtuais = criarDadosDemonstracao();
     let metasAtuais = {};
