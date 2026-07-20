@@ -33,7 +33,7 @@ var CONFIG_EQUIPES = {
  * METAS SEMANAIS DAS EQUIPES
  *
  * Edite somente os valores abaixo quando quiser alterar as metas.
- * No botão MÊS, a meta mensal é a soma das quatro semanas.
+ * No botão MÊS, a meta mensal é a soma das cinco semanas.
  * Opcional: você pode adicionar `mes: 150000` em uma equipe para
  * substituir a soma automática por uma meta mensal fixa.
  */
@@ -42,49 +42,56 @@ var CONFIG_METAS_EQUIPES = {
     semana1: 36900,
     semana2: 36900,
     semana3: 36900,
-    semana4: 36900
+    semana4: 36900,
+    semana5: 36900
   },
 
   invictus: {
     semana1: 32675,
     semana2: 32675,
     semana3: 32675,
-    semana4: 32675
+    semana4: 32675,
+    semana5: 32675
   },
 
   evolution: {
     semana1: 33450,
     semana2: 33450,
     semana3: 33450,
-    semana4: 33450
+    semana4: 33450,
+    semana5: 33450
   },
 
   vip: {
     semana1: 38450,
     semana2: 38450,
     semana3: 34225,
-    semana4: 38450
+    semana4: 38450,
+    semana5: 38450
   },
 
   winx: {
     semana1: 29225,
     semana2: 29225,
     semana3: 33450,
-    semana4: 29225
+    semana4: 29225,
+    semana5: 29225
   },
 
   alfas: {
     semana1: 36900,
     semana2: 36900,
     semana3: 36900,
-    semana4: 36900
+    semana4: 36900,
+    semana5: 36900
   },
 
   goat: {
     semana1: 32675,
     semana2: 32675,
     semana3: 32675,
-    semana4: 32675
+    semana4: 32675,
+    semana5: 32675
   }
 };
 
@@ -249,7 +256,7 @@ function responderEquipes(e) {
     e.parameter.semana || descobrirSemanaAtual(hoje)
   );
 
-  if (semana < 1 || semana > 4) {
+  if (semana < 1 || semana > 5) {
     semana = 1;
   }
 
@@ -508,7 +515,8 @@ function obterMetasEquipes(semana, visao) {
         converterNumeroEquipes(configuracao.semana1) +
         converterNumeroEquipes(configuracao.semana2) +
         converterNumeroEquipes(configuracao.semana3) +
-        converterNumeroEquipes(configuracao.semana4);
+        converterNumeroEquipes(configuracao.semana4) +
+        converterNumeroEquipes(configuracao.semana5);
 
       return;
     }
@@ -531,7 +539,8 @@ function obterMetasEquipes(semana, visao) {
  * 1ª: 1 a 4
  * 2ª: 6 a 11
  * 3ª: 13 a 18
- * 4ª: 20 até o final do mês
+ * 4ª: 20 a 25
+ * 5ª: 27 a 31
  */
 function obterPeriodoSemana(semana, mes, ano) {
   var ultimoDiaDoMes = new Date(
@@ -568,7 +577,15 @@ function obterPeriodoSemana(semana, mes, ano) {
     4: {
       tipo: "semana",
       inicio: 20,
-      fim: ultimoDiaDoMes,
+      fim: Math.min(25, ultimoDiaDoMes),
+      mes: mes,
+      ano: ano
+    },
+
+    5: {
+      tipo: "semana",
+      inicio: 27,
+      fim: Math.min(31, ultimoDiaDoMes),
       mes: mes,
       ano: ano
     }
@@ -622,7 +639,11 @@ function descobrirSemanaAtual(data) {
     return 3;
   }
 
-  return 4;
+  if (dia <= 26) {
+    return 4;
+  }
+
+  return 5;
 }
 
 
