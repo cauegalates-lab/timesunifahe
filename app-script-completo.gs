@@ -42,7 +42,7 @@ var CONFIG_METAS_EQUIPES = {
     semana1: 36900,
     semana2: 36900,
     semana3: 36900,
-    semana4: 36900,
+    semana4: 31900,
     semana5: 36900
   },
 
@@ -50,7 +50,7 @@ var CONFIG_METAS_EQUIPES = {
     semana1: 32675,
     semana2: 32675,
     semana3: 32675,
-    semana4: 32675,
+    semana4: 27675,
     semana5: 32675
   },
 
@@ -58,7 +58,7 @@ var CONFIG_METAS_EQUIPES = {
     semana1: 33450,
     semana2: 33450,
     semana3: 33450,
-    semana4: 33450,
+    semana4: 28450,
     semana5: 33450
   },
 
@@ -66,7 +66,7 @@ var CONFIG_METAS_EQUIPES = {
     semana1: 38450,
     semana2: 38450,
     semana3: 34225,
-    semana4: 38450,
+    semana4: 29225,
     semana5: 38450
   },
 
@@ -74,7 +74,7 @@ var CONFIG_METAS_EQUIPES = {
     semana1: 29225,
     semana2: 29225,
     semana3: 33450,
-    semana4: 29225,
+    semana4: 28450,
     semana5: 29225
   },
 
@@ -82,7 +82,7 @@ var CONFIG_METAS_EQUIPES = {
     semana1: 36900,
     semana2: 36900,
     semana3: 36900,
-    semana4: 36900,
+    semana4: 31900,
     semana5: 36900
   },
 
@@ -90,7 +90,7 @@ var CONFIG_METAS_EQUIPES = {
     semana1: 32675,
     semana2: 32675,
     semana3: 32675,
-    semana4: 32675,
+    semana4: 27675,
     semana5: 32675
   }
 };
