@@ -87,7 +87,7 @@ var CONFIG_METAS_EQUIPES = {
     semana1: 32675,
     semana2: 32675,
     semana3: 32675,
-    semana4: 27675,
+    semana4: 26900,
     semana5: 32675
   },
 
