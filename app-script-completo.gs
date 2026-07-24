@@ -87,7 +87,7 @@ var CONFIG_METAS_EQUIPES = {
     semana1: 32675,
     semana2: 32675,
     semana3: 32675,
-    semana4: 27675,
+    semana4: 26900,
     semana5: 32675
   },
 
@@ -103,7 +103,7 @@ var CONFIG_METAS_EQUIPES = {
     semana1: 38450,
     semana2: 38450,
     semana3: 34225,
-    semana4: 29225,
+    semana4: 32675,
     semana5: 38450
   },
 
@@ -127,7 +127,7 @@ var CONFIG_METAS_EQUIPES = {
     semana1: 32675,
     semana2: 32675,
     semana3: 32675,
-    semana4: 27675,
+    semana4: 28450,
     semana5: 32675
   }
 };
