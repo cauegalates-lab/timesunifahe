@@ -80,7 +80,8 @@ var CONFIG_METAS_EQUIPES = {
     semana2: 36900,
     semana3: 36900,
     semana4: 31900,
-    semana5: 36900
+    semana5: 50000
+
   },
 
   invictus: {
@@ -88,7 +89,7 @@ var CONFIG_METAS_EQUIPES = {
     semana2: 32675,
     semana3: 32675,
     semana4: 26900,
-    semana5: 32675
+    semana5: 50000
   },
 
   evolution: {
@@ -96,7 +97,7 @@ var CONFIG_METAS_EQUIPES = {
     semana2: 33450,
     semana3: 33450,
     semana4: 28450,
-    semana5: 33450
+    semana5: 50000
   },
 
   vip: {
@@ -104,7 +105,7 @@ var CONFIG_METAS_EQUIPES = {
     semana2: 38450,
     semana3: 34225,
     semana4: 32675,
-    semana5: 38450
+    semana5: 50000
   },
 
   winx: {
@@ -112,7 +113,7 @@ var CONFIG_METAS_EQUIPES = {
     semana2: 29225,
     semana3: 33450,
     semana4: 28450,
-    semana5: 29225
+    semana5: 50000
   },
 
   alfas: {
@@ -120,7 +121,7 @@ var CONFIG_METAS_EQUIPES = {
     semana2: 36900,
     semana3: 36900,
     semana4: 31900,
-    semana5: 36900
+    semana5: 50000
   },
 
   goat: {
@@ -128,7 +129,7 @@ var CONFIG_METAS_EQUIPES = {
     semana2: 32675,
     semana3: 32675,
     semana4: 28450,
-    semana5: 32675
+    semana5: 50000
   }
 };
 
@@ -171,10 +172,10 @@ var CONFIG_MEMBROS_EQUIPES = {
 
   evolution: {
     padrao: [
-      "Cauê Galates",
-      "Daniela Moura",
-      "Gabrielle Carvalho",
-      "Kevin Cristovão"
+      "Giseli de Jesus",
+      "Ana Kelly",
+      "Leticia Pereira",
+      "Carliane",
     ],
     semana1: [
       "Cauê Galates",
@@ -186,11 +187,10 @@ var CONFIG_MEMBROS_EQUIPES = {
 
   vip: {
     padrao: [
-      "Giseli de Jesus",
-      "Ana Kelly",
-      "Leticia Pereira",
-      "Carliane",
-      "Ana Luiza"
+      "Cauê Galates",
+      "Daniela Moura",
+      "Gabrielle Carvalho",
+      "Kevin Cristovão"
     ],
     semana1: [
       "Maria Laura",
