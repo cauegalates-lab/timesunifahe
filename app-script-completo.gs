@@ -9,8 +9,20 @@ var CONFIG_R2 = {
   // Coluna M dentro do intervalo B:M
   INDICE_COLUNA_FILTRO: 11,
 
-  VALOR_FILTRO: "R2 2026",
-  CACHE_SEGUNDOS: 30
+  // Coluna U: indicação. Ela é lida separadamente para não trazer N:T sem necessidade.
+  COLUNA_INDICACAO: 21,
+
+  // Valores aceitos na coluna M
+  VALORES_FILTRO: [
+    "R2 2026",
+    "DIPLOMADO-R2",
+    "MIGRAÇÃO R2",
+    "REFINFAHE R2"
+  ],
+
+
+  // R2 não usa CacheService para não estourar o limite com muitas vendas.
+  CACHE_SEGUNDOS: 0
 };
 
 
@@ -29,9 +41,26 @@ var CONFIG_EQUIPES = {
   COLUNA_VENDEDOR: 5,     // E
   COLUNA_VALOR_TOTAL: 20, // T
 
-  // O painel considera somente dias úteis comerciais: segunda a sexta.
-  SOMENTE_SEGUNDA_A_SEXTA: true,
+  // Somente segunda a sexta. Sábado e domingo não entram nem na semana nem no mês.
+  IGNORAR_FIM_DE_SEMANA: true,
   CACHE_SEGUNDOS: 30
+};
+
+
+/**
+ * IDENTIDADE DOS TIMES — usada somente pela rota ?rota=equipes.
+ * Nome e logo são enviados pelo Apps Script para o painel; nada fica fixo no index.
+ * Metas e membros continuam nas configurações CONFIG_METAS_EQUIPES e
+ * CONFIG_MEMBROS_EQUIPES já existentes neste mesmo arquivo.
+ */
+var CONFIG_INFO_EQUIPES = {
+  predadores: { nome: "PREDADORES", logo: "assets/predadores.jpeg" },
+  invictus:   { nome: "INVICTUS",   logo: "assets/invictus.jpeg" },
+  evolution:  { nome: "EVOLUTION",  logo: "assets/evolution.jpeg" },
+  vip:        { nome: "VIP",        logo: "assets/vip.jpeg" },
+  winx:       { nome: "WINX",       logo: "assets/winx.jpeg" },
+  alfas:      { nome: "ALFAS",      logo: "assets/alfas.jpeg" },
+  goat:       { nome: "GOAT",       logo: "assets/goat.jpeg" }
 };
 
 
@@ -58,163 +87,418 @@ var CONFIG_CRESCIMENTO = {
 };
 
 
+var CONFIG_TIMES_META_MILHAO = {
+  ABA: "Times",
+
+  // Somente os três times exibidos no painel da meta.
+  EQUIPES: {
+    vip: {
+      nome: "VIP",
+      intervalo: "D37:D42"
+    },
+    evolution: {
+      nome: "EVOLUTION",
+      intervalo: "N37:N42"
+    },
+    predadores: {
+      nome: "PREDADORES",
+      intervalo: "I37:I42"
+    }
+  },
+
+  // Ranking Top 5 exibido ao lado dos times.
+  // H53:H57 = nomes | I53:I57 = pontos.
+  RANKING_TOP_5: {
+    NOMES: "H53:H57",
+    PONTOS: "I53:I57"
+  }
+};
+
+
 var CONFIG_META_MILHAO = {
-  ABA: "Julho",
+  ABA: "Setembro",
   CELULA_FATURADO: "AK35",
-  CACHE_SEGUNDOS: 30,
+
+  // TOTAL DO MÊS ANTERIOR
+  CELULA_MES_ANTERIOR: "AK38",
+
+  // Período exibido no resumo e no histórico diário do painel.
+  // Ao trocar o mês da meta, altere estes dois valores junto com ABA/CELULA_FATURADO.
+  MES: 9,
+  ANO: 2026,
+
+  // Fonte usada para calcular quanto foi vendido em cada dia.
+  // A data está em B/C/D e o valor total faturado está na coluna T.
+  ABA_VENDAS: "Vendas",
+  LINHA_INICIAL_VENDAS: 2,
+  COLUNA_DIA: 2,
+  COLUNA_MES: 3,
+  COLUNA_ANO: 4,
+  COLUNA_VALOR_TOTAL: 20,
+
+  // Opcional: informe aqui o ID da planilha que contém a aba Agosto.
+  // Quando vazio, o código usa a planilha à qual este Apps Script está vinculado.
+  // Preencher este campo elimina qualquer risco de a implantação ler outra planilha.
+  PLANILHA_ID: "",
+
+  // Para o painel principal não usamos cache: é apenas uma célula e assim
+  // o valor exibido sempre corresponde ao valor atual de Agosto!AK35.
+  CACHE_SEGUNDOS: 0,
   FUSO_HORARIO: "America/Sao_Paulo"
 };
 
 
 /**
- * CONFIGURAÇÃO DOS TIMES
+ * RANKING DOS LÍDERES
  *
- * Esta é a única fonte de verdade para:
- * - nome de cada time;
- * - logo;
- * - membros;
- * - metas semanais e mensal.
- *
- * O index.html NÃO mantém uma cópia fixa dessas informações.
- * Sempre que esta configuração for alterada e o Web App for publicado,
- * o painel passa a usar os novos dados automaticamente.
- *
- * A meta mensal, quando `mes` não for informada, é a soma das semanas.
+ * Aba Vendas:
+ * - coluna B: dia da venda
+ * - coluna C: mês da venda
+ * - coluna E: nome do líder
+ * - coluna G: forma/situação da venda
+ *   (QUITADO ou CARTÃO contam como Quitado; os demais contam só como venda)
+ * - coluna K: valor da venda/faturamento
+ * - coluna R: quantidade de cursos/matrículas
  */
-var CONFIG_TIMES = [
-  {
-    id: "predadores",
-    nome: "Predadores",
-    logo: "assets/predadores.jpeg",
-    membros: [
+var CONFIG_RANKING_LIDERES = {
+  ABA: "Vendas",
+  LINHA_INICIAL: 2,
+  COLUNA_DIA: 2,        // B
+  COLUNA_MES: 3,        // C
+  COLUNA_NOME: 5,       // E
+  COLUNA_QUITADO: 7,    // G
+  COLUNA_VALOR: 11,     // K
+  COLUNA_CURSOS: 18,    // R
+  CACHE_SEGUNDOS: 60,
+  FUSO_HORARIO: "America/Sao_Paulo"
+};
+
+
+var LIDERES_RANKING = [
+  "Beatriz Cunha",
+  "Gabriel Gorgonio",
+  "Letícia Vieira",
+  "Cauê Galates",
+  "Alana Santos",
+  "Giseli de Jesus",
+  "Nathália"
+];
+
+
+/**
+ * COFRE COMERCIAL
+ *
+ * Resultados diários de todos os vendedores.
+ * - B: dia
+ * - C: mês
+ * - D: ano
+ * - E: vendedor
+ * - K: faturamento/valor da venda
+ * - R: quantidade de matrículas/cursos
+ *
+ * Antes das 20h: exige senha.
+ * A partir das 20h (America/Sao_Paulo): acesso público automático.
+ */
+var CONFIG_COFRE_COMERCIAL = {
+  ABA: "Vendas",
+  LINHA_INICIAL: 2,
+  COLUNA_DIA: 2,       // B
+  COLUNA_MES: 3,       // C
+  COLUNA_ANO: 4,       // D
+  COLUNA_NOME: 5,      // E
+  COLUNA_VALOR: 11,    // K
+  COLUNA_CURSOS: 18,   // R
+  HORA_PUBLICA: 20,
+  FUSO_HORARIO: "America/Sao_Paulo",
+  CACHE_SEGUNDOS: 30,
+
+  // Senha do cofre.
+  SENHA: "UNIFAHE2026",
+
+  // SHA-256 de: UNIFAHE2026
+  SENHA_HASH: "a642a5b66afe849d5783f2a653b81bd460ab5fc0c2b414a5e8d5cd16d71e304b"
+};
+
+var VENDEDORES_COFRE_COMERCIAL = [
+  "Alana Santos",
+  "Ana Luiza",
+  "Beatriz Cunha",
+  "Bianca Domingues",
+  "Bruna Moraes",
+  "Cauê Galates",
+  "Camilly Longhi",
+  "Daniela Moura",
+  "Fabiana Godoy",
+  "Gabriel Gorgonio",
+  "Gabrielle Andrade",
+  "Giseli de Jesus",
+  "Lara Baptista",
+  "Letícia Goretti",
+  "Leticia Pereira",
+  "Letícia Vieira",
+  "Lucas Eduardo",
+  "Maria Laura",
+  "Nathália",
+  "Raíssa Fontoura",
+  "Ana Kelly",
+  "Rodolfo Henrique",
+  "Kevin Cristovão",
+  "Melissa Ferreira",
+  "Vinicius Ribeiro",
+  "Gabrielle Carvalho",
+  "Paola Fernandes",
+  "Jane menezes",
+  "Estephany",
+  "Chrystian",
+  "Carliane"
+];
+
+
+
+
+/**
+ * PAINEL DIÁRIO DE VENDEDORES
+ *
+ * Esta rota é consumida somente pela função serverless da Vercel.
+ * O navegador não recebe a URL do Apps Script nem o token.
+ *
+ * Origem:
+ * - B: dia
+ * - C: mês
+ * - D: ano
+ * - E: vendedor
+ * - H + K: faturamento do vendedor no dia
+ */
+var CONFIG_PAINEL_VENDEDORES = {
+  ABA: "Vendas",
+  LINHA_INICIAL: 2,
+  FUSO_HORARIO: "America/Sao_Paulo",
+  COLUNA_DIA: 2,       // B
+  COLUNA_MES: 3,       // C
+  COLUNA_ANO: 4,       // D
+  COLUNA_VENDEDOR: 5,  // E
+  COLUNA_VALOR_H: 8,   // H
+  COLUNA_VALOR_K: 11,  // K
+  CACHE_SEGUNDOS: 10,
+  META_INDIVIDUAL: 5000
+};
+
+var VENDEDORES_PAINEL_VENDEDORES = [
+  "Alana Santos",
+  "Ana Luiza",
+  "Beatriz Cunha",
+  "Bianca Domingues",
+  "Bruna Moraes",
+  "Cauê Galates",
+  "Camilly Longhi",
+  "Daniela Moura",
+  "Fabiana Godoy",
+  "Gabriel Gorgonio",
+  "Gabrielle Andrade",
+  "Giseli de Jesus",
+  "Lara Baptista",
+  "Letícia Goretti",
+  "Leticia Pereira",
+  "Letícia Vieira",
+  "Lucas Eduardo",
+  "Maria Laura",
+  "Nathália",
+  "Raíssa Fontoura",
+  "Ana Kelly",
+  "Rodolfo Henrique",
+  "Kevin Cristovão",
+  "Melissa Ferreira",
+  "Nícolas",
+  "Vinicius Ribeiro",
+  "Gabrielle Carvalho",
+  "Paola Fernandes",
+  "Jane menezes",
+  "Estephany",
+  "Chrystian",
+  "Carliane"
+];
+
+
+/**
+ * METAS SEMANAIS DAS EQUIPES
+ *
+ * Edite somente os valores abaixo quando quiser alterar as metas.
+ * No botão MÊS, a meta mensal é a soma das cinco semanas.
+ * Opcional: você pode adicionar `mes: 150000` em uma equipe para
+ * substituir a soma automática por uma meta mensal fixa.
+ */
+var CONFIG_METAS_EQUIPES = {
+   predadores: {
+    semana1: 36900,
+    semana2: 36900,
+    semana3: 36900,
+    semana4: 31900,
+    semana5: 50000
+
+  },
+
+  invictus: {
+    semana1: 32675,
+    semana2: 32675,
+    semana3: 32675,
+    semana4: 26900,
+    semana5: 50000
+  },
+
+  evolution: {
+    semana1: 33450,
+    semana2: 33450,
+    semana3: 33450,
+    semana4: 28450,
+    semana5: 50000
+  },
+
+  vip: {
+    semana1: 38450,
+    semana2: 38450,
+    semana3: 34225,
+    semana4: 32675,
+    semana5: 50000
+  },
+
+  winx: {
+    semana1: 29225,
+    semana2: 29225,
+    semana3: 33450,
+    semana4: 28450,
+    semana5: 50000
+  },
+
+  alfas: {
+    semana1: 36900,
+    semana2: 36900,
+    semana3: 36900,
+    semana4: 31900,
+    semana5: 50000
+  },
+
+  goat: {
+    semana1: 32675,
+    semana2: 32675,
+    semana3: 32675,
+    semana4: 28450,
+    semana5: 50000
+  }
+};
+
+
+/**
+ * MEMBROS DAS EQUIPES
+ *
+ * O Apps Script usa esta configuração para calcular o realizado de cada baia.
+ * Na primeira semana, usa `semana1`. Nas demais semanas e no mês, usa `padrao`.
+ */
+var CONFIG_MEMBROS_EQUIPES = {
+  predadores: {
+    padrao: [
       "Gabriel Gorgonio",
       "Maria Laura",
       "Raíssa Fontoura",
       "Rodolfo Henrique"
     ],
-    metas: {
-      semana1: 36900,
-      semana2: 36900,
-      semana3: 36900,
-      semana4: 31900,
-      semana5: 50000
-    }
+    semana1: [
+      "Camilly Longhi",
+      "Paola Fernandes",
+      "Jane menezes"
+    ]
   },
 
-  {
-    id: "invictus",
-    nome: "Invictus",
-    logo: "assets/invictus.jpeg",
-    membros: [
+  invictus: {
+    padrao: [
       "Letícia Vieira",
       "Vinicius Ribeiro",
       "Chrystian",
       "Melissa Ferreira"
     ],
-    metas: {
-      semana1: 32675,
-      semana2: 32675,
-      semana3: 32675,
-      semana4: 26900,
-      semana5: 50000
-    }
+    semana1: [
+      "Letícia Goretti",
+      "Ana Kelly",
+      "Ana Luiza",
+      "Leticia Pereira"
+    ]
   },
 
-  {
-    id: "evolution",
-    nome: "Evolution",
-    logo: "assets/evolution.jpeg",
-    membros: [
+  evolution: {
+    padrao: [
       "Giseli de Jesus",
       "Ana Kelly",
       "Leticia Pereira",
-      "Carliane"
+      "Carliane",
     ],
-    metas: {
-      semana1: 33450,
-      semana2: 33450,
-      semana3: 33450,
-      semana4: 28450,
-      semana5: 50000
-    }
+    semana1: [
+      "Cauê Galates",
+      "Lara Baptista",
+      "Daniela Moura",
+      "Letícia Vieira"
+    ]
   },
 
-  {
-    id: "vip",
-    nome: "VIP",
-    logo: "assets/vip.jpeg",
-    membros: [
+  vip: {
+    padrao: [
       "Cauê Galates",
       "Daniela Moura",
       "Gabrielle Carvalho",
       "Kevin Cristovão"
     ],
-    metas: {
-      semana1: 38450,
-      semana2: 38450,
-      semana3: 34225,
-      semana4: 32675,
-      semana5: 50000
-    }
+    semana1: [
+      "Maria Laura",
+      "Gabriel Gorgonio",
+      "Raíssa Fontoura",
+      "Rodolfo Henrique"
+    ]
   },
 
-  {
-    id: "winx",
-    nome: "Winx",
-    logo: "assets/winx.jpeg",
-    membros: [
+  winx: {
+    padrao: [
       "Alana Santos",
       "Camilly Longhi",
       "Jane menezes",
       "Paola Fernandes"
     ],
-    metas: {
-      semana1: 29225,
-      semana2: 29225,
-      semana3: 33450,
-      semana4: 28450,
-      semana5: 50000
-    }
+    semana1: [
+      "Vinicius Ribeiro",
+      "Gabrielle Carvalho",
+      "Melissa Ferreira",
+      "Kevin Cristovão"
+    ]
   },
 
-  {
-    id: "alfas",
-    nome: "Alfas",
-    logo: "assets/alfas.jpeg",
-    membros: [
+  alfas: {
+    padrao: [
       "Nathália",
       "Fabiana Godoy",
       "Bruna Moraes",
       "Gabrielle Andrade"
     ],
-    metas: {
-      semana1: 36900,
-      semana2: 36900,
-      semana3: 36900,
-      semana4: 31900,
-      semana5: 50000
-    }
+    semana1: [
+      "Fabiana Godoy",
+      "Bruna Moraes",
+      "Nathália",
+      "Gabrielle Andrade"
+    ]
   },
 
-  {
-    id: "goat",
-    nome: "GOAT",
-    logo: "assets/goat.jpeg",
-    membros: [
+  goat: {
+    padrao: [
       "Beatriz Cunha",
       "Lara Baptista",
       "Lucas Eduardo",
       "Estephany"
     ],
-    metas: {
-      semana1: 32675,
-      semana2: 32675,
-      semana3: 32675,
-      semana4: 28450,
-      semana5: 50000
-    }
+    semana1: [
+      "Beatriz Cunha",
+      "Lucas Eduardo",
+      "Alana Santos",
+      "Eduardo Rogério"
+    ]
   }
-];
+};
+
 
 
 /**
@@ -224,14 +508,23 @@ var CONFIG_TIMES = [
  * URL normal do Apps Script
  *
  * Painel das equipes:
- * ?rota=equipes&visao=semana&semana=1&mes=9&ano=2026
- * ?rota=equipes&visao=mes&mes=9&ano=2026
+ * ?rota=equipes&visao=semana&semana=1
+ * ?rota=equipes&visao=mes
  *
  * Painel de crescimento:
  * ?rota=crescimento&mesBase=6&anoBase=2026&mesAtual=7&anoAtual=2026
  *
  * Painel da meta de 1 milhão:
  * ?rota=metaMilhao
+ *
+ * Ranking dos líderes:
+ * ?rota=rankingLideres
+ *
+ * Cofre Comercial:
+ * ?rota=cofreComercial
+ *
+ * Painel diário de vendedores (uso pela Vercel):
+ * ?rota=painelVendedores&token=SEU_TOKEN
  */
 function doGet(e) {
   e = e || {};
@@ -250,47 +543,402 @@ function doGet(e) {
   }
 
   if (rota === "METAMILHAO") {
+    if (!validarTokenMetaMilhao_(e)) {
+      return criarResposta(
+        JSON.stringify({
+          sucesso: false,
+          painel: "metaMilhao",
+          mensagem: "Não autorizado."
+        }),
+        validarCallbackRankingLideres(e.parameter.callback || "")
+      );
+    }
     return responderMetaMilhao(e);
+  }
+
+  if (rota === "RANKINGLIDERES") {
+    return responderRankingLideres(e);
+  }
+
+  if (rota === "PAINELVENDEDORES") {
+    return responderPainelVendedores(e);
+  }
+
+  if (rota === "COFRECOMERCIAL") {
+    return responderCofreComercial(e);
+  }
+
+  // A rota R2 e a unica protegida aqui pelo token privado usado pela Vercel.
+  // As demais rotas acima mantem exatamente o fluxo que ja tinham.
+  if (!validarTokenR2_(e)) {
+    return criarResposta(
+      JSON.stringify({
+        sucesso: false,
+        painel: "r2",
+        codigo: "NAO_AUTORIZADO",
+        mensagem: "Acesso nao autorizado.",
+        filtros: CONFIG_R2.VALORES_FILTRO,
+        total: 0,
+        dados: []
+      }),
+      ""
+    );
   }
 
   return responderR2(e);
 }
 
 
-/* =========================================================
-   PAINEL META DE 1 MILHÃO
-========================================================= */
+/**
+ * Protege somente a rota R2 com o segredo compartilhado entre
+ * a Vercel e o Apps Script.
+ *
+ * Apps Script > Configuracoes do projeto > Propriedades do script
+ * Nome: R2_API_TOKEN
+ * Valor: o mesmo de R2_APPS_SCRIPT_TOKEN configurado na Vercel.
+ */
+function validarTokenR2_(e) {
+  e = e || {};
+  e.parameter = e.parameter || {};
 
-function responderMetaMilhao(e) {
-  var callback = e.parameter.callback || "";
-  var cache = CacheService.getScriptCache();
-  var cacheKey = "painel_meta_milhao";
-  var json = cache.get(cacheKey);
+  var esperado = String(
+    PropertiesService.getScriptProperties().getProperty("R2_API_TOKEN") || ""
+  ).trim();
 
-  try {
-    if (!json) {
-      json = JSON.stringify(montarDadosMetaMilhao());
+  var recebido = String(e.parameter.token || "").trim();
 
-      cache.put(
-        cacheKey,
-        json,
-        CONFIG_META_MILHAO.CACHE_SEGUNDOS
-      );
-    }
-  } catch (erro) {
-    json = JSON.stringify({
-      sucesso: false,
-      painel: "metaMilhao",
-      faturado: 0,
-      mensagem: erro.message
-    });
-  }
-
-  return criarResposta(json, callback);
+  return esperado.length >= 32 &&
+    recebido.length === esperado.length &&
+    recebido === esperado;
 }
 
 
-function montarDadosMetaMilhao() {
+/**
+ * Protege a rota metaMilhao com um token salvo nas Propriedades do script.
+ * Configure em: Apps Script > Configurações do projeto > Propriedades do script
+ * Nome: META_API_TOKEN
+ * Valor: o mesmo definido em META_APPS_SCRIPT_TOKEN na Vercel.
+ */
+function validarTokenMetaMilhao_(e) {
+  e = e || {};
+  e.parameter = e.parameter || {};
+
+  var esperado = String(
+    PropertiesService.getScriptProperties().getProperty("META_API_TOKEN") || ""
+  ).trim();
+
+  var recebido = String(e.parameter.token || "").trim();
+
+  return esperado.length >= 24 && recebido === esperado;
+}
+
+
+
+/* =========================================================
+   PAINEL DIÁRIO DE VENDEDORES — ROTA PROTEGIDA PARA VERCEL
+========================================================= */
+
+/**
+ * Valida o segredo compartilhado com a Vercel.
+ *
+ * Configure em:
+ * Apps Script > Configurações do projeto > Propriedades do script
+ *
+ * Nome: DASHBOARD_API_SECRET
+ * Valor: exatamente o mesmo de DASHBOARD_API_SECRET na Vercel.
+ */
+function validarTokenPainelVendedores_(e) {
+  e = e || {};
+  e.parameter = e.parameter || {};
+
+  var esperado = String(
+    PropertiesService.getScriptProperties().getProperty("DASHBOARD_API_SECRET") || ""
+  ).trim();
+
+  var recebido = String(e.parameter.token || "").trim();
+
+  return esperado.length >= 24 && recebido === esperado;
+}
+
+
+function responderPainelVendedores(e) {
+  e = e || {};
+  e.parameter = e.parameter || {};
+
+  if (!validarTokenPainelVendedores_(e)) {
+    return criarResposta(
+      JSON.stringify({
+        ok: false,
+        painel: "painelVendedores",
+        error: "Não autorizado.",
+        sellers: []
+      }),
+      ""
+    );
+  }
+
+  try {
+    return criarResposta(
+      JSON.stringify(montarDadosPainelVendedores()),
+      ""
+    );
+  } catch (erro) {
+    return criarResposta(
+      JSON.stringify({
+        ok: false,
+        painel: "painelVendedores",
+        error: erro.message,
+        sellers: []
+      }),
+      ""
+    );
+  }
+}
+
+
+function montarDadosPainelVendedores() {
+  var agora = new Date();
+
+  var diaHoje = Number(
+    Utilities.formatDate(
+      agora,
+      CONFIG_PAINEL_VENDEDORES.FUSO_HORARIO,
+      "d"
+    )
+  );
+
+  var mesHoje = Number(
+    Utilities.formatDate(
+      agora,
+      CONFIG_PAINEL_VENDEDORES.FUSO_HORARIO,
+      "M"
+    )
+  );
+
+  var anoHoje = Number(
+    Utilities.formatDate(
+      agora,
+      CONFIG_PAINEL_VENDEDORES.FUSO_HORARIO,
+      "yyyy"
+    )
+  );
+
+  var cache = CacheService.getScriptCache();
+  var cacheKey = [
+    "painel_vendedores_v1",
+    anoHoje,
+    mesHoje,
+    diaHoje
+  ].join("_");
+
+  var cacheJson = cache.get(cacheKey);
+  if (cacheJson) {
+    return JSON.parse(cacheJson);
+  }
+
+  var planilha = SpreadsheetApp.getActiveSpreadsheet();
+
+  if (!planilha) {
+    throw new Error("O Apps Script não está vinculado à planilha.");
+  }
+
+  var aba = planilha.getSheetByName(CONFIG_PAINEL_VENDEDORES.ABA);
+
+  if (!aba) {
+    throw new Error(
+      'A aba "' + CONFIG_PAINEL_VENDEDORES.ABA + '" não foi encontrada.'
+    );
+  }
+
+  var totais = {};
+
+  VENDEDORES_PAINEL_VENDEDORES.forEach(function(nome) {
+    totais[normalizarTexto(nome)] = {
+      name: nome,
+      value: 0
+    };
+  });
+
+  var ultimaLinha = aba.getLastRow();
+
+  if (ultimaLinha >= CONFIG_PAINEL_VENDEDORES.LINHA_INICIAL) {
+    var quantidadeLinhas =
+      ultimaLinha - CONFIG_PAINEL_VENDEDORES.LINHA_INICIAL + 1;
+
+    // Lê somente B:K. Isso inclui B/C/D, E, H e K sem buscar colunas além do necessário.
+    var largura =
+      CONFIG_PAINEL_VENDEDORES.COLUNA_VALOR_K -
+      CONFIG_PAINEL_VENDEDORES.COLUNA_DIA + 1;
+
+    var intervalo = aba.getRange(
+      CONFIG_PAINEL_VENDEDORES.LINHA_INICIAL,
+      CONFIG_PAINEL_VENDEDORES.COLUNA_DIA,
+      quantidadeLinhas,
+      largura
+    );
+
+    var linhas = intervalo.getValues();
+    var linhasExibidas = intervalo.getDisplayValues();
+
+    var indiceMes =
+      CONFIG_PAINEL_VENDEDORES.COLUNA_MES -
+      CONFIG_PAINEL_VENDEDORES.COLUNA_DIA;
+
+    var indiceAno =
+      CONFIG_PAINEL_VENDEDORES.COLUNA_ANO -
+      CONFIG_PAINEL_VENDEDORES.COLUNA_DIA;
+
+    var indiceVendedor =
+      CONFIG_PAINEL_VENDEDORES.COLUNA_VENDEDOR -
+      CONFIG_PAINEL_VENDEDORES.COLUNA_DIA;
+
+    var indiceValorH =
+      CONFIG_PAINEL_VENDEDORES.COLUNA_VALOR_H -
+      CONFIG_PAINEL_VENDEDORES.COLUNA_DIA;
+
+    var indiceValorK =
+      CONFIG_PAINEL_VENDEDORES.COLUNA_VALOR_K -
+      CONFIG_PAINEL_VENDEDORES.COLUNA_DIA;
+
+    linhas.forEach(function(linha, i) {
+      var exibida = linhasExibidas[i] || [];
+
+      var diaVenda = converterInteiroRankingLideres(
+        linha[0] || exibida[0]
+      );
+
+      var mesVenda = converterInteiroRankingLideres(
+        linha[indiceMes] || exibida[indiceMes]
+      );
+
+      var anoVenda = converterInteiroRankingLideres(
+        linha[indiceAno] || exibida[indiceAno]
+      );
+
+      if (
+        diaVenda !== diaHoje ||
+        mesVenda !== mesHoje ||
+        anoVenda !== anoHoje
+      ) {
+        return;
+      }
+
+      var chave = normalizarTexto(
+        linha[indiceVendedor] || exibida[indiceVendedor]
+      );
+
+      var vendedor = totais[chave];
+
+      if (!vendedor) {
+        return;
+      }
+
+      var valorH = converterNumeroEquipes(
+        exibida[indiceValorH] || linha[indiceValorH]
+      );
+
+      var valorK = converterNumeroEquipes(
+        exibida[indiceValorK] || linha[indiceValorK]
+      );
+
+      vendedor.value = arredondarMoedaRankingLideres(
+        vendedor.value + valorH + valorK
+      );
+    });
+  }
+
+  var sellers = VENDEDORES_PAINEL_VENDEDORES.map(function(nome) {
+    var item = totais[normalizarTexto(nome)];
+
+    return {
+      name: item.name,
+      value: arredondarMoedaRankingLideres(item.value)
+    };
+  });
+
+  var total = sellers.reduce(function(soma, item) {
+    return arredondarMoedaRankingLideres(soma + item.value);
+  }, 0);
+
+  var resposta = {
+    ok: true,
+    painel: "painelVendedores",
+    periodo: {
+      dia: diaHoje,
+      mes: mesHoje,
+      ano: anoHoje
+    },
+    metaIndividual: CONFIG_PAINEL_VENDEDORES.META_INDIVIDUAL,
+    total: total,
+    sellers: sellers,
+    updatedAt: agora.toISOString()
+  };
+
+  cache.put(
+    cacheKey,
+    JSON.stringify(resposta),
+    CONFIG_PAINEL_VENDEDORES.CACHE_SEGUNDOS
+  );
+
+  return resposta;
+}
+
+
+function testarPainelVendedores() {
+  var resultado = montarDadosPainelVendedores();
+  Logger.log(JSON.stringify(resultado, null, 2));
+}
+
+
+/* =========================================================
+   RANKING DOS LÍDERES
+========================================================= */
+
+function responderRankingLideres(e) {
+  e = e || {};
+  e.parameter = e.parameter || {};
+
+  var callback = validarCallbackRankingLideres(
+    e.parameter.callback || ""
+  );
+
+  try {
+    return criarResposta(
+      JSON.stringify(montarDadosRankingLideres()),
+      callback
+    );
+  } catch (erro) {
+    return criarResposta(
+      JSON.stringify({
+        ok: false,
+        painel: "rankingLideres",
+        error: erro.message,
+        leaders: []
+      }),
+      callback
+    );
+  }
+}
+
+
+function montarDadosRankingLideres() {
+  // DATA FIXA DO RANKING DOS LÍDERES: 11/08
+  // Não depende mais da data atual.
+  var diaHoje = 11;
+  var mesHoje = 8;
+
+  var cache = CacheService.getScriptCache();
+  var cacheKey = [
+    "ranking_lideres_11_08_v1",
+    diaHoje,
+    mesHoje
+  ].join("_");
+  var jsonCache = cache.get(cacheKey);
+
+  if (jsonCache) {
+    return JSON.parse(jsonCache);
+  }
+
   var planilha = SpreadsheetApp.getActiveSpreadsheet();
 
   if (!planilha) {
@@ -299,37 +947,639 @@ function montarDadosMetaMilhao() {
     );
   }
 
-  var aba = planilha.getSheetByName(
-    CONFIG_META_MILHAO.ABA
-  );
+  var aba = planilha.getSheetByName(CONFIG_RANKING_LIDERES.ABA);
 
   if (!aba) {
     throw new Error(
-      'A aba "' + CONFIG_META_MILHAO.ABA +
+      'A aba "' + CONFIG_RANKING_LIDERES.ABA +
       '" não foi encontrada.'
     );
   }
 
-  var intervalo = aba.getRange(
-    CONFIG_META_MILHAO.CELULA_FATURADO
+  var totais = {};
+
+  LIDERES_RANKING.forEach(function(nome) {
+    totais[normalizarTexto(nome)] = {
+      name: nome,
+      quitados: 0,
+      matriculas: 0,
+      faturamento: 0
+    };
+  });
+
+  var ultimaLinha = aba.getLastRow();
+
+  if (ultimaLinha >= CONFIG_RANKING_LIDERES.LINHA_INICIAL) {
+    var quantidadeLinhas =
+      ultimaLinha - CONFIG_RANKING_LIDERES.LINHA_INICIAL + 1;
+
+    var largura =
+      CONFIG_RANKING_LIDERES.COLUNA_CURSOS -
+      CONFIG_RANKING_LIDERES.COLUNA_DIA + 1;
+
+    var linhas = aba.getRange(
+      CONFIG_RANKING_LIDERES.LINHA_INICIAL,
+      CONFIG_RANKING_LIDERES.COLUNA_DIA,
+      quantidadeLinhas,
+      largura
+    ).getValues();
+
+    var indiceMes =
+      CONFIG_RANKING_LIDERES.COLUNA_MES -
+      CONFIG_RANKING_LIDERES.COLUNA_DIA;
+
+    var indiceNome =
+      CONFIG_RANKING_LIDERES.COLUNA_NOME -
+      CONFIG_RANKING_LIDERES.COLUNA_DIA;
+
+    var indiceQuitado =
+      CONFIG_RANKING_LIDERES.COLUNA_QUITADO -
+      CONFIG_RANKING_LIDERES.COLUNA_DIA;
+
+    var indiceValor =
+      CONFIG_RANKING_LIDERES.COLUNA_VALOR -
+      CONFIG_RANKING_LIDERES.COLUNA_DIA;
+
+    var indiceCursos =
+      CONFIG_RANKING_LIDERES.COLUNA_CURSOS -
+      CONFIG_RANKING_LIDERES.COLUNA_DIA;
+
+    linhas.forEach(function(linha) {
+      var diaVenda = converterInteiroRankingLideres(linha[0]);
+      var mesVenda = converterInteiroRankingLideres(linha[indiceMes]);
+
+      if (diaVenda !== diaHoje || mesVenda !== mesHoje) {
+        return;
+      }
+
+      var lider = totais[normalizarTexto(linha[indiceNome])];
+
+      if (!lider) {
+        return;
+      }
+
+      var tipoPagamento = normalizarTexto(linha[indiceQuitado]);
+      var contaComoQuitado =
+        tipoPagamento.indexOf("QUITADO") !== -1 ||
+        tipoPagamento.indexOf("CARTAO") !== -1;
+
+      if (contaComoQuitado) {
+        lider.quitados++;
+      }
+
+      lider.matriculas += converterNumeroRankingLideres(
+        linha[indiceCursos]
+      );
+
+      lider.faturamento = arredondarMoedaRankingLideres(
+        lider.faturamento +
+        converterNumeroRankingLideres(linha[indiceValor])
+      );
+    });
+  }
+
+  var resposta = {
+    ok: true,
+    painel: "rankingLideres",
+    periodo: {
+      dia: diaHoje,
+      mes: mesHoje
+    },
+    updatedAt: new Date().toISOString(),
+    leaders: LIDERES_RANKING.map(function(nome) {
+      return totais[normalizarTexto(nome)];
+    })
+  };
+
+  cache.put(
+    cacheKey,
+    JSON.stringify(resposta),
+    CONFIG_RANKING_LIDERES.CACHE_SEGUNDOS
   );
 
-  var faturado = converterNumeroEquipes(
-    intervalo.getValue()
+  return resposta;
+}
+
+
+function converterInteiroRankingLideres(valor) {
+  if (valor instanceof Date && !isNaN(valor.getTime())) {
+    return valor.getDate();
+  }
+
+  var numero = parseInt(valor, 10);
+
+  return isNaN(numero) ? 0 : numero;
+}
+
+
+function converterNumeroRankingLideres(valor) {
+  if (typeof valor === "number") {
+    return isNaN(valor) ? 0 : valor;
+  }
+
+  var texto = String(valor || "")
+    .trim()
+    .replace(/[^0-9,.-]/g, "")
+    .replace(/\./g, "")
+    .replace(",", ".");
+
+  var numero = Number(texto);
+
+  return isNaN(numero) ? 0 : numero;
+}
+
+
+function arredondarMoedaRankingLideres(valor) {
+  return Math.round((Number(valor) || 0) * 100) / 100;
+}
+
+
+function validarCallbackRankingLideres(callback) {
+  var nome = String(callback || "").trim();
+
+  return /^[A-Za-z_$][0-9A-Za-z_$]*$/.test(nome)
+    ? nome
+    : "";
+}
+
+
+/* =========================================================
+   COFRE COMERCIAL
+========================================================= */
+
+function responderCofreComercial(e) {
+  e = e || {};
+  e.parameter = e.parameter || {};
+
+  var callback = validarCallbackRankingLideres(
+    e.parameter.callback || ""
   );
 
-  if (!faturado) {
-    faturado = converterNumeroEquipes(
-      intervalo.getDisplayValue()
+  var agora = new Date();
+  var publico = false;
+  var autorizado = false;
+
+  try {
+    var hora = Number(
+      Utilities.formatDate(
+        agora,
+        CONFIG_COFRE_COMERCIAL.FUSO_HORARIO,
+        "H"
+      )
+    );
+
+    publico = hora >= CONFIG_COFRE_COMERCIAL.HORA_PUBLICA;
+
+    var token = String(
+      e.parameter.token || ""
+    ).trim().toLowerCase();
+
+    var senhaInformada = String(
+      e.parameter.senha || ""
+    ).trim();
+
+    autorizado =
+      publico ||
+      senhaInformada === String(CONFIG_COFRE_COMERCIAL.SENHA) ||
+      token === String(
+        CONFIG_COFRE_COMERCIAL.SENHA_HASH
+      ).toLowerCase();
+
+    // Antes das 20h e sem senha válida, o cofre continua fechado.
+    if (!autorizado) {
+      return criarResposta(
+        JSON.stringify({
+          ok: true,
+          painel: "cofreComercial",
+          locked: true,
+          liberado: false,
+          publico: false,
+          abreAs: CONFIG_COFRE_COMERCIAL.HORA_PUBLICA + ":00",
+          timezone: CONFIG_COFRE_COMERCIAL.FUSO_HORARIO,
+          updatedAt: agora.toISOString()
+        }),
+        callback
+      );
+    }
+
+    // Senha correta OU horário após 20h:
+    // o cofre abre independentemente de existirem resultados.
+    var dados = montarDadosCofreComercial(agora) || {};
+
+    if (!Array.isArray(dados.vendedores)) {
+      dados.vendedores = [];
+    }
+
+    dados.ok = true;
+    dados.painel = "cofreComercial";
+    dados.publico = publico;
+    dados.liberado = true;
+    dados.locked = false;
+
+    return criarResposta(
+      JSON.stringify(dados),
+      callback
+    );
+
+  } catch (erro) {
+    // Se o usuário já foi autorizado, uma falha ao ler a planilha
+    // NÃO mantém o cofre fechado. Ele abre com resultados zerados.
+    if (autorizado) {
+      var dia = Number(
+        Utilities.formatDate(
+          agora,
+          CONFIG_COFRE_COMERCIAL.FUSO_HORARIO,
+          "d"
+        )
+      );
+
+      var mes = Number(
+        Utilities.formatDate(
+          agora,
+          CONFIG_COFRE_COMERCIAL.FUSO_HORARIO,
+          "M"
+        )
+      );
+
+      var ano = Number(
+        Utilities.formatDate(
+          agora,
+          CONFIG_COFRE_COMERCIAL.FUSO_HORARIO,
+          "yyyy"
+        )
+      );
+
+      return criarResposta(
+        JSON.stringify({
+          ok: true,
+          painel: "cofreComercial",
+          locked: false,
+          liberado: true,
+          publico: publico,
+          periodo: {
+            dia: dia,
+            mes: mes,
+            ano: ano
+          },
+          updatedAt: agora.toISOString(),
+          vendedores: [],
+          aviso: "Cofre liberado, mas nenhum resultado pôde ser carregado.",
+          detalhe: erro.message
+        }),
+        callback
+      );
+    }
+
+    return criarResposta(
+      JSON.stringify({
+        ok: false,
+        painel: "cofreComercial",
+        locked: true,
+        liberado: false,
+        publico: false,
+        error: erro.message,
+        vendedores: []
+      }),
+      callback
     );
   }
+}
+
+function montarDadosCofreComercial(agora) {
+  agora = agora || new Date();
+
+  var diaHoje = Number(
+    Utilities.formatDate(
+      agora,
+      CONFIG_COFRE_COMERCIAL.FUSO_HORARIO,
+      "d"
+    )
+  );
+
+  var mesHoje = Number(
+    Utilities.formatDate(
+      agora,
+      CONFIG_COFRE_COMERCIAL.FUSO_HORARIO,
+      "M"
+    )
+  );
+
+  var anoHoje = Number(
+    Utilities.formatDate(
+      agora,
+      CONFIG_COFRE_COMERCIAL.FUSO_HORARIO,
+      "yyyy"
+    )
+  );
+
+  var cache = CacheService.getScriptCache();
+  var cacheKey = [
+    "cofre_comercial_v3",
+    anoHoje,
+    mesHoje,
+    diaHoje
+  ].join("_");
+
+  var cacheJson = cache.get(cacheKey);
+  if (cacheJson) {
+    return JSON.parse(cacheJson);
+  }
+
+  var planilha = SpreadsheetApp.getActiveSpreadsheet();
+
+  if (!planilha) {
+    throw new Error("O Apps Script não está vinculado à planilha.");
+  }
+
+  var aba = planilha.getSheetByName(CONFIG_COFRE_COMERCIAL.ABA);
+
+  if (!aba) {
+    throw new Error(
+      'A aba "' + CONFIG_COFRE_COMERCIAL.ABA + '" não foi encontrada.'
+    );
+  }
+
+  var totais = {};
+
+  VENDEDORES_COFRE_COMERCIAL.forEach(function(nome) {
+    totais[normalizarTexto(nome)] = {
+      name: nome,
+      matriculas: 0,
+      faturamento: 0
+    };
+  });
+
+  var ultimaLinha = aba.getLastRow();
+
+  if (ultimaLinha >= CONFIG_COFRE_COMERCIAL.LINHA_INICIAL) {
+    var quantidadeLinhas =
+      ultimaLinha - CONFIG_COFRE_COMERCIAL.LINHA_INICIAL + 1;
+
+    // Lê B:R para obter data, vendedor, valor (K) e matrículas (R).
+    var largura =
+      CONFIG_COFRE_COMERCIAL.COLUNA_CURSOS -
+      CONFIG_COFRE_COMERCIAL.COLUNA_DIA + 1;
+
+    var intervalo = aba.getRange(
+      CONFIG_COFRE_COMERCIAL.LINHA_INICIAL,
+      CONFIG_COFRE_COMERCIAL.COLUNA_DIA,
+      quantidadeLinhas,
+      largura
+    );
+
+    var linhas = intervalo.getValues();
+    var linhasExibidas = intervalo.getDisplayValues();
+
+    var indiceMes =
+      CONFIG_COFRE_COMERCIAL.COLUNA_MES -
+      CONFIG_COFRE_COMERCIAL.COLUNA_DIA;
+
+    var indiceAno =
+      CONFIG_COFRE_COMERCIAL.COLUNA_ANO -
+      CONFIG_COFRE_COMERCIAL.COLUNA_DIA;
+
+    var indiceNome =
+      CONFIG_COFRE_COMERCIAL.COLUNA_NOME -
+      CONFIG_COFRE_COMERCIAL.COLUNA_DIA;
+
+    var indiceValor =
+      CONFIG_COFRE_COMERCIAL.COLUNA_VALOR -
+      CONFIG_COFRE_COMERCIAL.COLUNA_DIA;
+
+    var indiceCursos =
+      CONFIG_COFRE_COMERCIAL.COLUNA_CURSOS -
+      CONFIG_COFRE_COMERCIAL.COLUNA_DIA;
+
+    linhas.forEach(function(linha, i) {
+      var exibida = linhasExibidas[i] || [];
+      var diaVenda = converterInteiroRankingLideres(linha[0] || exibida[0]);
+      var mesVenda = converterInteiroRankingLideres(
+        linha[indiceMes] || exibida[indiceMes]
+      );
+      var anoVenda = converterInteiroRankingLideres(
+        linha[indiceAno] || exibida[indiceAno]
+      );
+
+      if (
+        diaVenda !== diaHoje ||
+        mesVenda !== mesHoje ||
+        anoVenda !== anoHoje
+      ) {
+        return;
+      }
+
+      var vendedor = totais[
+        normalizarTexto(linha[indiceNome] || exibida[indiceNome])
+      ];
+
+      if (!vendedor) {
+        return;
+      }
+
+      vendedor.matriculas += converterNumeroRankingLideres(
+        linha[indiceCursos] || exibida[indiceCursos]
+      );
+
+      vendedor.faturamento = arredondarMoedaRankingLideres(
+        vendedor.faturamento +
+        converterValorCofreComercial(
+          linha[indiceValor],
+          exibida[indiceValor]
+        )
+      );
+    });
+  }
+
+  var vendedores = VENDEDORES_COFRE_COMERCIAL.map(function(nome) {
+    var item = totais[normalizarTexto(nome)];
+
+    return {
+      name: item.name,
+      matriculas: item.matriculas,
+      faturamento: arredondarMoedaRankingLideres(item.faturamento)
+    };
+  });
+
+  var resposta = {
+    ok: true,
+    painel: "cofreComercial",
+    periodo: {
+      dia: diaHoje,
+      mes: mesHoje,
+      ano: anoHoje
+    },
+    updatedAt: agora.toISOString(),
+    vendedores: vendedores
+  };
+
+  cache.put(
+    cacheKey,
+    JSON.stringify(resposta),
+    CONFIG_COFRE_COMERCIAL.CACHE_SEGUNDOS
+  );
+
+  return resposta;
+}
+
+
+function converterValorCofreComercial(valorBruto, valorExibido) {
+  if (
+    typeof valorBruto === "number" &&
+    isFinite(valorBruto)
+  ) {
+    return arredondarMoedaRankingLideres(valorBruto);
+  }
+
+  return arredondarMoedaRankingLideres(
+    converterNumeroEquipes(valorExibido || valorBruto)
+  );
+}
+
+
+/* =========================================================
+   PAINEL META DE 1 MILHÃO
+========================================================= */
+
+function responderMetaMilhao(e) {
+  var callback = validarCallbackRankingLideres(e.parameter.callback || "");
+  var incluirHistorico = String(e.parameter.incluirHistorico || "1") !== "0";
+  var json;
+
+  try {
+    // A meta lê somente uma célula. Não usamos CacheService aqui para evitar
+    // que um valor anterior continue aparecendo depois de uma atualização.
+    json = JSON.stringify(montarDadosMetaMilhao({
+      incluirHistorico: incluirHistorico
+    }));
+  } catch (erro) {
+    json = JSON.stringify({
+      sucesso: false,
+      painel: "metaMilhao",
+      faturado: 0,
+      mesAnterior: 0,
+      mensagem: erro.message
+    });
+  }
+
+  return criarResposta(json, callback);
+}
+
+
+function obterPlanilhaMetaMilhao() {
+  var idConfigurado = String(CONFIG_META_MILHAO.PLANILHA_ID || "").trim();
+
+  if (idConfigurado) {
+    return SpreadsheetApp.openById(idConfigurado);
+  }
+
+  var planilha = SpreadsheetApp.getActiveSpreadsheet();
+
+  if (!planilha) {
+    throw new Error(
+      "Não foi possível identificar a planilha da meta. " +
+      "Preencha CONFIG_META_MILHAO.PLANILHA_ID com o ID da planilha correta."
+    );
+  }
+
+  return planilha;
+}
+
+
+function montarDadosMetaMilhao(opcoes) {
+  opcoes = opcoes || {};
+  var incluirHistorico = opcoes.incluirHistorico !== false;
+  var planilha = obterPlanilhaMetaMilhao();
+  var aba = planilha.getSheetByName(CONFIG_META_MILHAO.ABA);
+
+  if (!aba) {
+    throw new Error(
+      'A aba "' + CONFIG_META_MILHAO.ABA +
+      '" não foi encontrada na planilha "' + planilha.getName() + '".'
+    );
+  }
+
+  var intervalo = aba.getRange(CONFIG_META_MILHAO.CELULA_FATURADO);
+  var valorBruto = intervalo.getValue();
+  var valorExibido = intervalo.getDisplayValue();
+  var faturado = converterNumeroEquipes(valorBruto);
+
+  var intervaloMesAnterior = aba.getRange(CONFIG_META_MILHAO.CELULA_MES_ANTERIOR);
+  var valorMesAnteriorBruto = intervaloMesAnterior.getValue();
+  var valorMesAnteriorExibido = intervaloMesAnterior.getDisplayValue();
+  var mesAnterior = converterNumeroEquipes(valorMesAnteriorBruto);
+
+  // Mesmo fallback usado no faturamento atual para células formatadas como moeda/texto.
+  if (!Number(mesAnterior) && String(valorMesAnteriorExibido || "").trim()) {
+    mesAnterior = converterNumeroEquipes(valorMesAnteriorExibido);
+  }
+
+  // Fallback apenas para células cujo valor interno não seja numérico, mas
+  // que estejam exibindo um número formatado como moeda/texto.
+  if (!Number(faturado) && String(valorExibido || "").trim()) {
+    faturado = converterNumeroEquipes(valorExibido);
+  }
+
+  var mesHistorico = converterInteiroEquipes(CONFIG_META_MILHAO.MES);
+  var anoHistorico = converterInteiroEquipes(CONFIG_META_MILHAO.ANO);
+  var historicoDiario = [];
+  var erroHistorico = "";
+
+  if (incluirHistorico) {
+    try {
+      historicoDiario = montarHistoricoDiarioMetaMilhao(
+        planilha,
+        mesHistorico,
+        anoHistorico
+      );
+    } catch (erro) {
+      // O faturamento principal continua funcionando mesmo se a aba de vendas
+      // estiver temporariamente indisponível.
+      erroHistorico = erro.message;
+
+      // Mantém o último histórico válido em vez de apagar os dias da tela.
+      historicoDiario = obterUltimoHistoricoMetaMilhao(
+        mesHistorico,
+        anoHistorico
+      ) || [];
+    }
+  } else {
+    // A chamada rápida atualiza o faturamento sem zerar o histórico já carregado.
+    historicoDiario = obterUltimoHistoricoMetaMilhao(
+      mesHistorico,
+      anoHistorico
+    ) || [];
+  }
+
+  var timesQuantidade = montarQuantidadesTimesMetaMilhao(planilha);
+  var rankingTop5 = montarRankingTop5MetaMilhao(planilha);
 
   return {
     sucesso: true,
     painel: "metaMilhao",
     faturado: faturado,
-    origem: CONFIG_META_MILHAO.ABA + "!" +
-      CONFIG_META_MILHAO.CELULA_FATURADO,
+    mesAnterior: mesAnterior,
+    origem: CONFIG_META_MILHAO.ABA + "!" + CONFIG_META_MILHAO.CELULA_FATURADO,
+    origemMesAnterior: CONFIG_META_MILHAO.ABA + "!" + CONFIG_META_MILHAO.CELULA_MES_ANTERIOR,
+
+    // Diagnóstico: permite conferir exatamente qual arquivo/célula a
+    // implantação publicada está consultando.
+    planilhaNome: planilha.getName(),
+    planilhaId: planilha.getId(),
+    valorBruto: valorBruto,
+    valorExibido: valorExibido,
+    formula: intervalo.getFormula() || "",
+    valorMesAnteriorBruto: valorMesAnteriorBruto,
+    valorMesAnteriorExibido: valorMesAnteriorExibido,
+    formulaMesAnterior: intervaloMesAnterior.getFormula() || "",
+
+    mes: mesHistorico,
+    ano: anoHistorico,
+    timesQuantidade: timesQuantidade,
+    rankingTop5: rankingTop5,
+    historicoDiario: historicoDiario,
+    ultimosTresDias: historicoDiario.slice(-3),
+    erroHistorico: erroHistorico,
+
     atualizadoEm: Utilities.formatDate(
       new Date(),
       CONFIG_META_MILHAO.FUSO_HORARIO,
@@ -339,43 +1589,286 @@ function montarDadosMetaMilhao() {
 }
 
 
+function montarQuantidadesTimesMetaMilhao(planilha) {
+  planilha = planilha || obterPlanilhaMetaMilhao();
+
+  var abaTimes = planilha.getSheetByName(CONFIG_TIMES_META_MILHAO.ABA);
+  if (!abaTimes) {
+    throw new Error(
+      'A aba "' + CONFIG_TIMES_META_MILHAO.ABA +
+      '" não foi encontrada na planilha "' + planilha.getName() + '".'
+    );
+  }
+
+  var resultado = {};
+  var equipes = CONFIG_TIMES_META_MILHAO.EQUIPES || {};
+
+  Object.keys(equipes).forEach(function(chave) {
+    var equipe = equipes[chave] || {};
+    var intervaloA1 = String(equipe.intervalo || "").trim();
+    var total = 0;
+
+    if (intervaloA1) {
+      var valores = abaTimes.getRange(intervaloA1).getValues();
+      for (var linha = 0; linha < valores.length; linha += 1) {
+        for (var coluna = 0; coluna < valores[linha].length; coluna += 1) {
+          var valor = valores[linha][coluna];
+          var numero = typeof valor === 'number'
+            ? valor
+            : converterNumeroEquipes(valor);
+
+          if (!isNaN(numero) && numero !== null && numero !== "") {
+            total += Number(numero) || 0;
+          }
+        }
+      }
+    }
+
+    resultado[chave] = {
+      nome: String(equipe.nome || chave).toUpperCase(),
+      intervalo: intervaloA1,
+      quantidade: total
+    };
+  });
+
+  return resultado;
+}
+
+
+function montarRankingTop5MetaMilhao(planilha) {
+  planilha = planilha || obterPlanilhaMetaMilhao();
+
+  var abaTimes = planilha.getSheetByName(CONFIG_TIMES_META_MILHAO.ABA);
+  if (!abaTimes) {
+    throw new Error(
+      'A aba "' + CONFIG_TIMES_META_MILHAO.ABA +
+      '" não foi encontrada na planilha "' + planilha.getName() + '".'
+    );
+  }
+
+  var configRanking = CONFIG_TIMES_META_MILHAO.RANKING_TOP_5 || {};
+  var nomes = abaTimes.getRange(configRanking.NOMES || "H53:H57").getDisplayValues();
+  var pontos = abaTimes.getRange(configRanking.PONTOS || "I53:I57").getValues();
+  var ranking = [];
+
+  for (var i = 0; i < 5; i += 1) {
+    var nome = String((nomes[i] && nomes[i][0]) || "").trim();
+    var valorPontos = pontos[i] && pontos[i][0];
+    var numeroPontos = typeof valorPontos === "number"
+      ? valorPontos
+      : converterNumeroEquipes(valorPontos);
+
+    ranking.push({
+      posicao: i + 1,
+      nome: nome,
+      pontos: Number(numeroPontos) || 0
+    });
+  }
+
+  return ranking;
+}
+
+
+/**
+ * Soma o faturamento de cada dia do mês usando Vendas!B/C/D e Vendas!T.
+ * No mês atual, retorna do dia 1 até hoje; em meses encerrados, retorna todos
+ * os dias. Assim o resumo sempre inclui hoje e os dois dias anteriores, mesmo
+ * quando algum deles ainda estiver com R$ 0.
+ */
+function obterUltimoHistoricoMetaMilhao(mes, ano) {
+  try {
+    var cache = CacheService.getScriptCache();
+    var cacheKey = "metaMilhaoHistoricoUltimo:" + mes + ":" + ano;
+    var cacheado = cache.get(cacheKey);
+
+    if (!cacheado) {
+      return null;
+    }
+
+    var historico = JSON.parse(cacheado);
+    return Array.isArray(historico) ? historico : null;
+  } catch (erro) {
+    return null;
+  }
+}
+
+
+function salvarUltimoHistoricoMetaMilhao(mes, ano, historico) {
+  try {
+    if (!Array.isArray(historico)) {
+      return;
+    }
+
+    CacheService.getScriptCache().put(
+      "metaMilhaoHistoricoUltimo:" + mes + ":" + ano,
+      JSON.stringify(historico),
+      21600
+    );
+  } catch (erro) {
+    // O histórico principal continua funcionando mesmo se o cache auxiliar falhar.
+  }
+}
+
+
+function montarHistoricoDiarioMetaMilhao(planilha, mes, ano) {
+  if (mes < 1 || mes > 12 || ano < 2000) {
+    throw new Error("Mês ou ano inválido no histórico diário da meta.");
+  }
+
+  var abaVendas = planilha.getSheetByName(CONFIG_META_MILHAO.ABA_VENDAS);
+
+  if (!abaVendas) {
+    throw new Error(
+      'A aba "' + CONFIG_META_MILHAO.ABA_VENDAS +
+      '" não foi encontrada para montar o histórico diário.'
+    );
+  }
+
+  var cache = CacheService.getScriptCache();
+  var cacheKey = "metaMilhaoHistorico:" + mes + ":" + ano;
+  var cacheado = cache.get(cacheKey);
+
+  if (cacheado) {
+    try {
+      return JSON.parse(cacheado);
+    } catch (erroCache) {
+      // Ignora cache inválido e recalcula a partir da planilha.
+    }
+  }
+
+  var agora = new Date();
+  var mesAtual = Number(
+    Utilities.formatDate(agora, CONFIG_META_MILHAO.FUSO_HORARIO, "M")
+  );
+  var anoAtual = Number(
+    Utilities.formatDate(agora, CONFIG_META_MILHAO.FUSO_HORARIO, "yyyy")
+  );
+  var ultimoDiaMes = new Date(ano, mes, 0).getDate();
+  var diaLimite = ultimoDiaMes;
+
+  if (mes === mesAtual && ano === anoAtual) {
+    diaLimite = Number(
+      Utilities.formatDate(agora, CONFIG_META_MILHAO.FUSO_HORARIO, "d")
+    );
+  }
+
+  var totais = {};
+
+  for (var dia = 1; dia <= diaLimite; dia++) {
+    totais[dia] = 0;
+  }
+
+  var ultimaLinha = abaVendas.getLastRow();
+
+  if (ultimaLinha >= CONFIG_META_MILHAO.LINHA_INICIAL_VENDAS) {
+    var quantidadeLinhas =
+      ultimaLinha - CONFIG_META_MILHAO.LINHA_INICIAL_VENDAS + 1;
+
+    var intervaloDatas = abaVendas.getRange(
+      CONFIG_META_MILHAO.LINHA_INICIAL_VENDAS,
+      CONFIG_META_MILHAO.COLUNA_DIA,
+      quantidadeLinhas,
+      CONFIG_META_MILHAO.COLUNA_ANO - CONFIG_META_MILHAO.COLUNA_DIA + 1
+    );
+    var datas = intervaloDatas.getValues();
+    var datasExibidas = intervaloDatas.getDisplayValues();
+
+    var intervaloValores = abaVendas.getRange(
+      CONFIG_META_MILHAO.LINHA_INICIAL_VENDAS,
+      CONFIG_META_MILHAO.COLUNA_VALOR_TOTAL,
+      quantidadeLinhas,
+      1
+    );
+    var valores = intervaloValores.getValues();
+    var valoresExibidos = intervaloValores.getDisplayValues();
+
+    for (var i = 0; i < datas.length; i++) {
+      var dataVenda = interpretarDataEquipes(
+        datas[i][0],
+        datas[i][1],
+        datas[i][2],
+        datasExibidas[i][0],
+        datasExibidas[i][1],
+        datasExibidas[i][2]
+      );
+
+      if (
+        !dataVenda ||
+        dataVenda.mes !== mes ||
+        dataVenda.ano !== ano ||
+        dataVenda.dia > diaLimite
+      ) {
+        continue;
+      }
+
+      totais[dataVenda.dia] = arredondarMoedaEquipes(
+        (totais[dataVenda.dia] || 0) +
+        interpretarValorEquipes(valores[i][0], valoresExibidos[i][0])
+      );
+    }
+  }
+
+  var historico = [];
+
+  for (var numeroDia = 1; numeroDia <= diaLimite; numeroDia++) {
+    historico.push({
+      dia: numeroDia,
+      mes: mes,
+      ano: ano,
+      valor: arredondarMoedaEquipes(totais[numeroDia] || 0)
+    });
+  }
+
+  cache.put(cacheKey, JSON.stringify(historico), 45);
+
+  // Guarda também uma cópia por até 6 horas para as chamadas rápidas.
+  // Assim o painel não troca um histórico válido por [] enquanto atualiza o total.
+  salvarUltimoHistoricoMetaMilhao(mes, ano, historico);
+
+  return historico;
+}
+
+
 /* =========================================================
    PAINEL R2
 ========================================================= */
 
 function responderR2(e) {
-  var callback = e.parameter.callback || "";
-  var cache = CacheService.getScriptCache();
-  var cacheKey = "vendas_r2_2026";
-  var json = cache.get(cacheKey);
+  e = e || {};
+  e.parameter = e.parameter || {};
+  var callback = validarCallbackRankingLideres(
+    e.parameter.callback || ""
+  );
 
   try {
-    if (!json) {
-      json = JSON.stringify(montarDadosR2());
-
-      cache.put(
-        cacheKey,
-        json,
-        CONFIG_R2.CACHE_SEGUNDOS
-      );
-    }
+    // IMPORTANTE: não salvar o JSON completo do R2 no CacheService.
+    // O painel pode ter muitas vendas e ultrapassar o limite por chave do cache.
+    // Se o cache estourar, a resposta não pode ser perdida.
+    var resposta = montarDadosR2();
+    return criarResposta(JSON.stringify(resposta), callback);
   } catch (erro) {
-    json = JSON.stringify({
-      sucesso: false,
-      painel: "r2",
-      mensagem: erro.message,
-      filtro: CONFIG_R2.VALOR_FILTRO,
-      total: 0,
-      dados: []
-    });
+    return criarResposta(
+      JSON.stringify({
+        sucesso: false,
+        painel: "r2",
+        mensagem: erro.message,
+        filtros: CONFIG_R2.VALORES_FILTRO,
+        total: 0,
+        dados: []
+      }),
+      callback
+    );
   }
-
-  return criarResposta(json, callback);
 }
 
 
 function montarDadosR2() {
   var planilha = SpreadsheetApp.getActiveSpreadsheet();
+
+  if (!planilha) {
+    throw new Error("O Apps Script não está vinculado à planilha.");
+  }
+
   var aba = planilha.getSheetByName(CONFIG_R2.ABA);
 
   if (!aba) {
@@ -390,7 +1883,7 @@ function montarDadosR2() {
     return {
       sucesso: true,
       painel: "r2",
-      filtro: CONFIG_R2.VALOR_FILTRO,
+      filtros: CONFIG_R2.VALORES_FILTRO,
       total: 0,
       dados: [],
       atualizadoEm: new Date().toISOString()
@@ -409,9 +1902,20 @@ function montarDadosR2() {
     )
     .getDisplayValues();
 
-  var filtro = normalizarTexto(
-    CONFIG_R2.VALOR_FILTRO
-  );
+  // Lê somente a coluna U (Indicação) em uma chamada separada.
+  // Assim o painel continua leve e não precisa carregar as colunas N:T.
+  var indicacoes = aba
+    .getRange(
+      CONFIG_R2.LINHA_INICIAL,
+      CONFIG_R2.COLUNA_INDICACAO,
+      quantidadeLinhas,
+      1
+    )
+    .getDisplayValues();
+
+  var filtros = CONFIG_R2.VALORES_FILTRO.map(function(valor) {
+    return normalizarTexto(valor);
+  });
 
   var dados = [];
 
@@ -422,7 +1926,7 @@ function montarDadosR2() {
       linha[CONFIG_R2.INDICE_COLUNA_FILTRO]
     );
 
-    if (valorFiltro !== filtro) {
+    if (filtros.indexOf(valorFiltro) === -1) {
       continue;
     }
 
@@ -432,6 +1936,7 @@ function montarDadosR2() {
       ano: linha[2],          // D
       vendedor: linha[3],     // E
       aluno: linha[4],        // F
+      indicacao: indicacoes[i][0], // U
       tipoPgto: linha[5],     // G
       taxa: linha[6],         // H
       boleto: linha[7],       // I
@@ -445,7 +1950,7 @@ function montarDadosR2() {
   return {
     sucesso: true,
     painel: "r2",
-    filtro: CONFIG_R2.VALOR_FILTRO,
+    filtros: CONFIG_R2.VALORES_FILTRO,
     total: dados.length,
     dados: dados,
     atualizadoEm: new Date().toISOString()
@@ -464,8 +1969,7 @@ function responderEquipes(e) {
   var callback = e.parameter.callback || "";
   var hoje = new Date();
 
-  // O seletor do painel pode informar mês e ano.
-  // Sem parâmetros, usa automaticamente o mês/ano atuais em São Paulo.
+  // Evita diferença de data entre o servidor do Apps Script e o Brasil.
   var mesAtual = Number(
     Utilities.formatDate(
       hoje,
@@ -489,24 +1993,11 @@ function responderEquipes(e) {
     mes = mesAtual;
   }
 
-  if (ano < 2000 || ano > 2100) {
-    ano = anoAtual;
-  }
-
-  var semanasDisponiveis = obterSemanasComerciaisMes(mes, ano);
-  var semanaPadrao = (mes === mesAtual && ano === anoAtual)
-    ? descobrirSemanaAtual(hoje)
-    : 1;
-
   var semana = converterInteiroEquipes(e.parameter.semana) ||
-    semanaPadrao;
+    descobrirSemanaAtual(hoje);
 
-  if (semana < 1) {
+  if (semana < 1 || semana > 5) {
     semana = 1;
-  }
-
-  if (semana > semanasDisponiveis.length) {
-    semana = semanasDisponiveis.length || 1;
   }
 
   var visao = normalizarTexto(
@@ -520,7 +2011,7 @@ function responderEquipes(e) {
   var cache = CacheService.getScriptCache();
 
   var cacheKey = [
-    "painel_equipes_v4",
+    "painel_equipes_v2",
     visao,
     ano,
     mes,
@@ -548,49 +2039,36 @@ function responderEquipes(e) {
       );
     }
 
-    // Configuração dos times é relida em toda requisição.
-    // Assim nomes, membros e metas não ficam presos ao cache de vendas.
+    // Metas e composição das baias são lidas em toda requisição.
+    // As vendas podem continuar em cache por alguns segundos.
     dadosResposta.metas = obterMetasEquipes(semana, visao);
-    dadosResposta.membrosEquipes = obterMembrosTodasEquipes();
+    dadosResposta.membrosEquipes = obterMembrosTodasEquipes(
+      semana,
+      visao
+    );
     dadosResposta.equipes = calcularTotaisEquipes(
-      dadosResposta.vendedores
+      dadosResposta.vendedores,
+      semana,
+      visao
     );
     dadosResposta.totalEquipes = somarTotaisEquipes(
       dadosResposta.equipes
     );
-    dadosResposta.times = montarTimesPainel(
-      semana,
-      visao,
-      dadosResposta.equipes,
-      dadosResposta.metas
-    );
-    dadosResposta.periodosSemanais = semanasDisponiveis;
-    dadosResposta.mes = mes;
-    dadosResposta.ano = ano;
+    dadosResposta.periodosSemanais = obterPeriodosSemanaisEquipes(mes, ano);
+    dadosResposta.times = montarTimesParaPainel(semana, visao, dadosResposta.equipes, dadosResposta.metas);
   } catch (erro) {
-    var metasErro = obterMetasEquipes(semana, visao);
-    var equipesErro = calcularTotaisEquipes({});
-
     dadosResposta = {
       sucesso: false,
       painel: "equipes",
       visao: visao.toLowerCase(),
-      semana: semana,
-      mes: mes,
-      ano: ano,
       mensagem: erro.message,
       vendedores: {},
       vendedoresLista: [],
-      membrosEquipes: obterMembrosTodasEquipes(),
-      equipes: equipesErro,
-      metas: metasErro,
-      times: montarTimesPainel(
-        semana,
-        visao,
-        equipesErro,
-        metasErro
-      ),
-      periodosSemanais: semanasDisponiveis,
+      membrosEquipes: obterMembrosTodasEquipes(semana, visao),
+      equipes: calcularTotaisEquipes({}, semana, visao),
+      metas: obterMetasEquipes(semana, visao),
+      periodosSemanais: obterPeriodosSemanaisEquipes(mes, ano),
+      times: montarTimesParaPainel(semana, visao, calcularTotaisEquipes({}, semana, visao), obterMetasEquipes(semana, visao)),
       totalEquipes: 0,
       totalGeral: 0
     };
@@ -626,7 +2104,7 @@ function montarDadosEquipes(mes, ano, semana, visao) {
   visao = normalizarTexto(visao || "SEMANA");
 
   if (mes < 1 || mes > 12 || ano < 2000) {
-    throw new Error("Mês ou ano inválido no painel de times.");
+    throw new Error("Mês ou ano inválido no filtro do painel de times.");
   }
 
   if (visao !== "MES") {
@@ -767,7 +2245,9 @@ function montarDadosEquipes(mes, ano, semana, visao) {
   });
 
   var equipes = calcularTotaisEquipes(
-    vendedores
+    vendedores,
+    semana,
+    visao
   );
 
   var totalEquipes = somarTotaisEquipes(equipes);
@@ -789,16 +2269,11 @@ function montarDadosEquipes(mes, ano, semana, visao) {
     linhasConsideradas: linhasConsideradas,
     vendedores: vendedores,
     vendedoresLista: vendedoresLista,
-    membrosEquipes: obterMembrosTodasEquipes(),
+    membrosEquipes: obterMembrosTodasEquipes(semana, visao),
     equipes: equipes,
     metas: metas,
-    times: montarTimesPainel(
-      semana,
-      visao,
-      equipes,
-      metas
-    ),
-    periodosSemanais: obterSemanasComerciaisMes(mes, ano),
+    periodosSemanais: obterPeriodosSemanaisEquipes(mes, ano),
+    times: montarTimesParaPainel(semana, visao, equipes, metas),
     totalEquipes: totalEquipes,
     totalGeral: totalGeral,
     atualizadoEm: Utilities.formatDate(
@@ -810,9 +2285,6 @@ function montarDadosEquipes(mes, ano, semana, visao) {
 }
 
 function criarRetornoEquipesVazio(mes, ano, semana, visao, periodo, metas) {
-  var equipes = calcularTotaisEquipes({});
-  var metasAtuais = metas || obterMetasEquipes(semana, visao);
-
   return {
     sucesso: true,
     painel: "equipes",
@@ -823,65 +2295,54 @@ function criarRetornoEquipesVazio(mes, ano, semana, visao, periodo, metas) {
     ano: ano,
     vendedores: {},
     vendedoresLista: [],
-    membrosEquipes: obterMembrosTodasEquipes(),
-    equipes: equipes,
-    metas: metasAtuais,
-    times: montarTimesPainel(
-      semana,
-      visao,
-      equipes,
-      metasAtuais
-    ),
-    periodosSemanais: obterSemanasComerciaisMes(mes, ano),
+    membrosEquipes: obterMembrosTodasEquipes(semana, visao),
+    equipes: calcularTotaisEquipes({}, semana, visao),
+    metas: metas || obterMetasEquipes(semana, visao),
+    periodosSemanais: obterPeriodosSemanaisEquipes(mes, ano),
+    times: montarTimesParaPainel(semana, visao, calcularTotaisEquipes({}, semana, visao), metas || obterMetasEquipes(semana, visao)),
     totalEquipes: 0,
     totalGeral: 0,
-    atualizadoEm: Utilities.formatDate(
-      new Date(),
-      CONFIG_EQUIPES.FUSO_HORARIO,
-      "yyyy-MM-dd'T'HH:mm:ss"
-    )
+    atualizadoEm: new Date().toISOString()
   };
 }
 
 
 /* =========================================================
-   TOTAIS / CONFIGURAÇÃO DOS TIMES
+   TOTAIS DAS EQUIPES
 ========================================================= */
 
-function obterTimeConfig(equipeId) {
-  var id = normalizarTexto(equipeId);
+function obterMembrosEquipe(equipeId, semana, visao) {
+  var configuracao = CONFIG_MEMBROS_EQUIPES[equipeId] || {};
+  var usarSemana1 =
+    normalizarTexto(visao) !== "MES" &&
+    converterInteiroEquipes(semana) === 1;
 
-  for (var i = 0; i < CONFIG_TIMES.length; i++) {
-    if (normalizarTexto(CONFIG_TIMES[i].id) === id) {
-      return CONFIG_TIMES[i];
-    }
+  if (usarSemana1 && Array.isArray(configuracao.semana1)) {
+    return configuracao.semana1;
   }
 
-  return null;
-}
-
-
-function obterMembrosEquipe(equipeId) {
-  var time = obterTimeConfig(equipeId);
-
-  return time && Array.isArray(time.membros)
-    ? time.membros.slice()
+  return Array.isArray(configuracao.padrao)
+    ? configuracao.padrao
     : [];
 }
 
 
-function obterMembrosTodasEquipes() {
+function obterMembrosTodasEquipes(semana, visao) {
   var membrosEquipes = {};
 
-  CONFIG_TIMES.forEach(function(time) {
-    membrosEquipes[time.id] = obterMembrosEquipe(time.id);
+  Object.keys(CONFIG_MEMBROS_EQUIPES).forEach(function(equipeId) {
+    membrosEquipes[equipeId] = obterMembrosEquipe(
+      equipeId,
+      semana,
+      visao
+    ).slice();
   });
 
   return membrosEquipes;
 }
 
 
-function calcularTotaisEquipes(vendedores) {
+function calcularTotaisEquipes(vendedores, semana, visao) {
   var vendedoresNormalizados = {};
   var totaisEquipes = {};
 
@@ -899,8 +2360,8 @@ function calcularTotaisEquipes(vendedores) {
     );
   });
 
-  CONFIG_TIMES.forEach(function(time) {
-    var membros = obterMembrosEquipe(time.id);
+  Object.keys(CONFIG_MEMBROS_EQUIPES).forEach(function(equipeId) {
+    var membros = obterMembrosEquipe(equipeId, semana, visao);
     var total = 0;
 
     membros.forEach(function(nome) {
@@ -909,7 +2370,7 @@ function calcularTotaisEquipes(vendedores) {
       );
     });
 
-    totaisEquipes[time.id] = arredondarMoedaEquipes(total);
+    totaisEquipes[equipeId] = arredondarMoedaEquipes(total);
   });
 
   return totaisEquipes;
@@ -927,17 +2388,40 @@ function somarTotaisEquipes(equipes) {
 }
 
 
+/**
+ * Monta a estrutura consumida pelo index. Assim nome, logo, membros, meta e
+ * realizado vêm todos do Apps Script e o HTML não precisa conhecer os times.
+ */
+function montarTimesParaPainel(semana, visao, equipes, metas) {
+  equipes = equipes || {};
+  metas = metas || {};
+
+  return Object.keys(CONFIG_INFO_EQUIPES).map(function(equipeId) {
+    var info = CONFIG_INFO_EQUIPES[equipeId] || {};
+
+    return {
+      id: equipeId,
+      nome: String(info.nome || equipeId).toUpperCase(),
+      logo: String(info.logo || ""),
+      membros: obterMembrosEquipe(equipeId, semana, visao).slice(),
+      meta: arredondarMoedaEquipes(metas[equipeId] || 0),
+      realizado: arredondarMoedaEquipes(equipes[equipeId] || 0)
+    };
+  });
+}
+
+
 /* =========================================================
-   METAS DOS TIMES
+   METAS DAS EQUIPES
 ========================================================= */
 
 function obterMetasEquipes(semana, visao) {
   var metas = {};
-  var chaveSemana = "semana" + converterInteiroEquipes(semana);
+  var chaveSemana = "semana" + semana;
   var modoMes = normalizarTexto(visao) === "MES";
 
-  CONFIG_TIMES.forEach(function(time) {
-    var configuracao = time.metas || {};
+  Object.keys(CONFIG_METAS_EQUIPES).forEach(function(equipeId) {
+    var configuracao = CONFIG_METAS_EQUIPES[equipeId] || {};
 
     if (modoMes) {
       if (
@@ -945,23 +2429,21 @@ function obterMetasEquipes(semana, visao) {
         configuracao.mes !== null &&
         configuracao.mes !== ""
       ) {
-        metas[time.id] = converterNumeroEquipes(configuracao.mes);
+        metas[equipeId] = converterNumeroEquipes(configuracao.mes);
         return;
       }
 
-      var metaMensal = 0;
+      metas[equipeId] =
+        converterNumeroEquipes(configuracao.semana1) +
+        converterNumeroEquipes(configuracao.semana2) +
+        converterNumeroEquipes(configuracao.semana3) +
+        converterNumeroEquipes(configuracao.semana4) +
+        converterNumeroEquipes(configuracao.semana5);
 
-      for (var i = 1; i <= 5; i++) {
-        metaMensal += converterNumeroEquipes(
-          configuracao["semana" + i]
-        );
-      }
-
-      metas[time.id] = arredondarMoedaEquipes(metaMensal);
       return;
     }
 
-    metas[time.id] = converterNumeroEquipes(
+    metas[equipeId] = converterNumeroEquipes(
       configuracao[chaveSemana]
     );
   });
@@ -970,111 +2452,66 @@ function obterMetasEquipes(semana, visao) {
 }
 
 
-function montarTimesPainel(semana, visao, equipes, metas) {
-  equipes = equipes || {};
-  metas = metas || obterMetasEquipes(semana, visao);
-
-  return CONFIG_TIMES.map(function(time) {
-    return {
-      id: String(time.id || "").trim(),
-      nome: String(time.nome || time.id || "").trim(),
-      logo: String(time.logo || "").trim(),
-      membros: obterMembrosEquipe(time.id),
-      meta: arredondarMoedaEquipes(
-        converterNumeroEquipes(metas[time.id])
-      ),
-      realizado: arredondarMoedaEquipes(
-        converterNumeroEquipes(equipes[time.id])
-      )
-    };
-  });
-}
-
-
 /* =========================================================
    PERÍODOS
 ========================================================= */
 
 /**
- * Monta as semanas comerciais do mês automaticamente.
- *
- * Regras:
- * - considera somente segunda a sexta;
- * - sábado e domingo ficam fora;
- * - a primeira semana pode ser parcial;
- * - cada nova segunda-feira inicia uma nova semana;
- * - ao virar o mês, as faixas são recalculadas automaticamente.
- *
- * Exemplo para setembro/2026:
- * 1ª: 01 a 04
- * 2ª: 07 a 11
- * 3ª: 14 a 18
- * 4ª: 21 a 25
- * 5ª: 28 a 30
+ * Gera as semanas comerciais reais do mês, sempre de segunda a sexta.
+ * A primeira e a última semana podem ser parciais.
+ * Ex.: setembro/2026 => 01-04, 07-11, 14-18, 21-25, 28-30.
  */
-function obterSemanasComerciaisMes(mes, ano) {
+function obterPeriodosSemanaisEquipes(mes, ano) {
   mes = converterInteiroEquipes(mes);
   ano = converterInteiroEquipes(ano);
 
-  var ultimoDiaDoMes = new Date(
-    ano,
-    mes,
-    0
-  ).getDate();
+  var ultimoDia = new Date(ano, mes, 0).getDate();
+  var periodos = [];
+  var inicio = null;
+  var fim = null;
 
-  var semanas = [];
-  var semanaAtual = null;
+  for (var dia = 1; dia <= ultimoDia; dia++) {
+    var data = new Date(ano, mes - 1, dia);
+    var diaSemana = data.getDay();
+    var util = diaSemana >= 1 && diaSemana <= 5;
 
-  for (var dia = 1; dia <= ultimoDiaDoMes; dia++) {
-    var diaSemana = new Date(
-      Date.UTC(ano, mes - 1, dia)
-    ).getUTCDay();
-
-    // 0 = domingo | 6 = sábado
-    if (diaSemana === 0 || diaSemana === 6) {
-      continue;
+    if (util) {
+      if (inicio === null) {
+        inicio = dia;
+      }
+      fim = dia;
     }
 
-    // A primeira data útil abre a 1ª semana.
-    // Depois disso, cada segunda-feira abre uma nova semana.
-    if (!semanaAtual || diaSemana === 1) {
-      semanaAtual = {
+    var encerraSemana = diaSemana === 5 || dia === ultimoDia;
+
+    if (encerraSemana && inicio !== null) {
+      periodos.push({
+        numero: periodos.length + 1,
         tipo: "semana",
-        numero: semanas.length + 1,
-        inicio: dia,
-        fim: dia,
+        inicio: inicio,
+        fim: fim,
         mes: mes,
         ano: ano,
         diasConsiderados: "segunda a sexta"
-      };
-
-      semanas.push(semanaAtual);
+      });
+      inicio = null;
+      fim = null;
     }
-
-    semanaAtual.fim = dia;
   }
 
-  return semanas;
+  return periodos;
 }
 
 
 function obterPeriodoSemana(semana, mes, ano) {
-  var semanas = obterSemanasComerciaisMes(mes, ano);
-  var numeroSemana = converterInteiroEquipes(semana);
+  var periodos = obterPeriodosSemanaisEquipes(mes, ano);
+  var numero = converterInteiroEquipes(semana);
 
-  if (numeroSemana < 1) {
-    numeroSemana = 1;
-  }
-
-  if (numeroSemana > semanas.length) {
-    numeroSemana = semanas.length || 1;
-  }
-
-  return semanas[numeroSemana - 1] || {
-    tipo: "semana",
+  return periodos[numero - 1] || periodos[0] || {
     numero: 1,
+    tipo: "semana",
     inicio: 1,
-    fim: 1,
+    fim: 0,
     mes: mes,
     ano: ano,
     diasConsiderados: "segunda a sexta"
@@ -1096,7 +2533,6 @@ function obterPeriodoMes(mes, ano) {
 
 /**
  * Retorna true somente para segunda, terça, quarta, quinta e sexta.
- * Sábado e domingo não entram nos totais do painel de times.
  */
 function diaUtilComercial(dia, mes, ano) {
   var ultimoDia = new Date(ano, mes, 0).getDate();
@@ -1105,10 +2541,7 @@ function diaUtilComercial(dia, mes, ano) {
     return false;
   }
 
-  var diaSemana = new Date(
-    Date.UTC(ano, mes - 1, dia)
-  ).getUTCDay();
-
+  var diaSemana = new Date(ano, mes - 1, dia).getDay();
   return diaSemana >= 1 && diaSemana <= 5;
 }
 
@@ -1226,7 +2659,7 @@ function dataPertenceAoPeriodoEquipes(dataVenda, periodo) {
   }
 
   if (
-    CONFIG_EQUIPES.SOMENTE_SEGUNDA_A_SEXTA &&
+    CONFIG_EQUIPES.IGNORAR_FIM_DE_SEMANA &&
     !diaUtilComercial(
       dataVenda.dia,
       dataVenda.mes,
@@ -1248,44 +2681,25 @@ function arredondarMoedaEquipes(valor) {
 function descobrirSemanaAtual(data) {
   data = data || new Date();
 
-  var dia = Number(
-    Utilities.formatDate(
-      data,
-      CONFIG_EQUIPES.FUSO_HORARIO,
-      "d"
-    )
-  );
+  var dia = Number(Utilities.formatDate(data, CONFIG_EQUIPES.FUSO_HORARIO, "d"));
+  var mes = Number(Utilities.formatDate(data, CONFIG_EQUIPES.FUSO_HORARIO, "M"));
+  var ano = Number(Utilities.formatDate(data, CONFIG_EQUIPES.FUSO_HORARIO, "yyyy"));
+  var periodos = obterPeriodosSemanaisEquipes(mes, ano);
 
-  var mes = Number(
-    Utilities.formatDate(
-      data,
-      CONFIG_EQUIPES.FUSO_HORARIO,
-      "M"
-    )
-  );
-
-  var ano = Number(
-    Utilities.formatDate(
-      data,
-      CONFIG_EQUIPES.FUSO_HORARIO,
-      "yyyy"
-    )
-  );
-
-  var semanas = obterSemanasComerciaisMes(mes, ano);
-  var semanaEncontrada = 1;
-
-  // Em sábado/domingo, mantém a semana comercial imediatamente anterior.
-  // Na segunda-feira seguinte, avança automaticamente para a próxima.
-  for (var i = 0; i < semanas.length; i++) {
-    if (dia >= semanas[i].inicio) {
-      semanaEncontrada = i + 1;
-    } else {
-      break;
+  for (var i = 0; i < periodos.length; i++) {
+    if (dia >= periodos[i].inicio && dia <= periodos[i].fim) {
+      return periodos[i].numero;
     }
   }
 
-  return semanaEncontrada;
+  // Em sábado/domingo, mantém selecionada a semana comercial recém-encerrada.
+  for (var j = periodos.length - 1; j >= 0; j--) {
+    if (dia > periodos[j].fim) {
+      return periodos[j].numero;
+    }
+  }
+
+  return 1;
 }
 
 
@@ -1902,4 +3316,11 @@ function testarEquipesMes() {
   Logger.log(
     JSON.stringify(resultado, null, 2)
   );
+}
+
+
+
+function testarCofreComercial() {
+  var resultado = montarDadosCofreComercial(new Date());
+  Logger.log(JSON.stringify(resultado, null, 2));
 }

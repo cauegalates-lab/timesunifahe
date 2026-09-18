@@ -49,3 +49,9 @@ C: mês
 D: ano
 E: vendedor
 T: valor total da venda
+
+
+AJUSTE 18/09/2026 — ROTA EQUIPES
+- app-script-completo.gs preserva todas as demais rotas e configurações do Code.gs informado pelo usuário.
+- Somente a rota equipes foi adaptada para segunda a sexta, semanas dinâmicas por mês, seletor de mês e times/metas/membros vindos do Apps Script.
+- CONFIG_INFO_EQUIPES controla nome/logo; CONFIG_METAS_EQUIPES controla metas; CONFIG_MEMBROS_EQUIPES controla membros.

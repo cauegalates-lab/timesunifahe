@@ -795,6 +795,152 @@
       .live-dot, .hud-ring, .valor-integrante.loading { animation: none; }
       .semana-btn { transition: none; }
     }
+
+    /* ===== PAINEL FIXO / SEM SCROLL / RESPONSIVO ===== */
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      min-height: 0 !important;
+      overflow: hidden !important;
+    }
+
+    .shell {
+      width: min(1880px, calc(100% - clamp(10px, 1.4vw, 26px))) !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      min-height: 0 !important;
+      padding: clamp(5px, .75vh, 10px) 0 !important;
+      overflow: hidden !important;
+    }
+
+    .layout {
+      height: 100% !important;
+      min-height: 0 !important;
+      grid-template-rows: auto auto minmax(0, 1fr) !important;
+      gap: clamp(5px, .7vh, 10px) !important;
+      overflow: hidden !important;
+    }
+
+    .topbar {
+      min-height: 0 !important;
+      padding: clamp(7px, 1vh, 12px) clamp(12px, 1.5vw, 22px) !important;
+    }
+
+    .brand-logo { width: clamp(132px, 12vw, 205px) !important; }
+    .brand-divider { height: clamp(38px, 5.5vh, 58px) !important; }
+    .titulo-principal { font-size: clamp(22px, 2.1vw, 38px) !important; }
+    .subtitle { font-size: clamp(9px, .7vw, 12px) !important; }
+
+    .period-toolbar {
+      min-height: 0 !important;
+      padding: clamp(5px, .65vh, 8px) clamp(7px, .8vw, 12px) !important;
+    }
+    .mes-select, .semana-btn { height: clamp(29px, 4.2vh, 36px) !important; }
+
+    .painel {
+      height: 100% !important;
+      min-height: 0 !important;
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      grid-template-rows: repeat(3, minmax(0, 1fr)) !important;
+      grid-auto-rows: unset !important;
+      gap: clamp(5px, .75vh, 10px) !important;
+      overflow: hidden !important;
+    }
+
+    .card { min-height: 0 !important; }
+    .equipe-card { grid-template-rows: minmax(0, 1fr) auto !important; }
+    .equipe-topo {
+      grid-template-columns: minmax(72px, 27%) minmax(0, 73%) !important;
+      gap: clamp(6px, .7vw, 12px) !important;
+      padding: clamp(5px, .7vh, 9px) clamp(7px, .7vw, 12px) !important;
+      overflow: hidden !important;
+    }
+    .logo-frame {
+      width: min(100%, clamp(72px, 8.4vw, 124px)) !important;
+      max-height: 100% !important;
+      aspect-ratio: 1 / 1 !important;
+      padding: 0 !important;
+    }
+    .logo-frame img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      object-position: center !important;
+      transform: scale(1.03) !important;
+    }
+    .integrantes { gap: clamp(1px, .2vh, 4px) !important; overflow: hidden !important; }
+    .equipe-nome { font-size: clamp(10px, .82vw, 15px) !important; }
+    .integrante {
+      grid-template-columns: minmax(0, 1fr) minmax(70px, 34%) !important;
+      column-gap: 7px !important;
+      padding: 1px 0 !important;
+      font-size: clamp(8px, .68vw, 12px) !important;
+    }
+    .equipe-kpis { min-height: 0 !important; padding-block: clamp(4px, .5vh, 7px) !important; }
+    .kpi-label { font-size: clamp(7px, .52vw, 9px) !important; }
+    .kpi-valor { font-size: clamp(10px, .86vw, 15px) !important; }
+    .percentual { font-size: clamp(20px, 2vw, 34px) !important; }
+    .marca-card, .total-card { min-height: 0 !important; }
+    .developer-credit { bottom: 1px !important; font-size: 6px !important; }
+
+    @media (max-width: 760px) {
+      .shell { width: calc(100% - 8px) !important; padding: 4px 0 !important; }
+      .layout { gap: 4px !important; }
+      .topbar {
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 7px !important;
+        padding: 6px 8px !important;
+        border-radius: 11px 11px 4px 4px !important;
+      }
+      .brand-area { width: auto !important; flex: 1 1 auto !important; gap: 7px !important; }
+      .brand-logo { width: clamp(88px, 25vw, 130px) !important; }
+      .brand-divider { height: 32px !important; }
+      .eyebrow, .subtitle, .ultima-atualizacao { display: none !important; }
+      .titulo-principal { font-size: clamp(14px, 4.2vw, 21px) !important; white-space: nowrap !important; }
+      .status-area { width: auto !important; flex: 0 0 auto !important; flex-direction: row !important; }
+      .periodo-wrap { display: none !important; }
+      .live-badge { min-height: 25px !important; padding: 0 7px !important; font-size: 8px !important; }
+      .period-toolbar { flex-direction: row !important; align-items: center !important; gap: 4px !important; padding: 4px !important; }
+      .mes-filter { width: auto !important; flex: 0 0 auto !important; padding: 0 4px 0 0 !important; border-right: 1px solid rgba(255,255,255,.09) !important; border-bottom: 0 !important; }
+      .mes-filter label { display: none !important; }
+      .mes-select { width: 82px !important; min-width: 82px !important; height: 27px !important; padding: 0 5px !important; font-size: 8px !important; }
+      .semanas { overflow: hidden !important; gap: 3px !important; }
+      .semana-btn { min-width: 0 !important; flex: 1 1 0 !important; height: 27px !important; padding: 0 3px !important; font-size: 7px !important; }
+      .painel {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        grid-template-rows: repeat(5, minmax(0, 1fr)) !important;
+        gap: 4px !important;
+      }
+      .equipe-topo { grid-template-columns: 42px minmax(0,1fr) !important; gap: 5px !important; padding: 3px 5px !important; }
+      .logo-frame { width: 42px !important; border-radius: 9px !important; }
+      .logo-frame img { border-radius: 8px !important; }
+      .equipe-nome { font-size: 8px !important; margin: 0 !important; }
+      .integrantes { gap: 0 !important; }
+      .integrante { grid-template-columns: minmax(0,1fr) 54px !important; column-gap: 3px !important; padding: 0 !important; font-size: 6.5px !important; line-height: 1 !important; }
+      .equipe-kpis { padding: 2px !important; }
+      .kpi { padding: 1px 2px !important; }
+      .kpi-label { font-size: 5.5px !important; }
+      .kpi-valor { font-size: 7.5px !important; }
+      .percentual { font-size: 14px !important; }
+      .marca-logo { width: min(72%, 110px) !important; }
+      .marca-nome { font-size: 12px !important; }
+      .marca-sub, .total-info { font-size: 5.5px !important; }
+      .total-label { font-size: 7px !important; }
+      .total-valor { font-size: clamp(17px, 5.5vw, 27px) !important; }
+      .developer-credit { display: none !important; }
+    }
+
+    @media (max-height: 650px) and (min-width: 761px) {
+      .eyebrow, .subtitle, .ultima-atualizacao { display: none !important; }
+      .topbar { padding-block: 5px !important; }
+      .brand-logo { width: 130px !important; }
+      .brand-divider { height: 34px !important; }
+      .titulo-principal { font-size: 23px !important; }
+      .period-toolbar { padding-block: 3px !important; }
+      .mes-select, .semana-btn { height: 28px !important; }
+    }
   </style>
 </head>
 <body>
@@ -890,6 +1036,18 @@
 
     const referenciaAtual = obterMesAnoSaoPaulo();
 
+    // Identidade visual fixa do painel. O Apps Script controla somente
+    // membros, metas e resultados; nome, ordem e logo dos times permanecem no front-end.
+    const TIMES_VISUAIS = [
+      { id: "predadores", nome: "PREDADORES", logo: "assets/predadores.jpeg" },
+      { id: "invictus", nome: "INVICTUS", logo: "assets/invictus.jpeg" },
+      { id: "evolution", nome: "EVOLUTION", logo: "assets/evolution.jpeg" },
+      { id: "vip", nome: "VIP", logo: "assets/vip.jpeg" },
+      { id: "winx", nome: "WINX", logo: "assets/winx.jpeg" },
+      { id: "alfas", nome: "ALFAS", logo: "assets/alfas.jpeg" },
+      { id: "goat", nome: "GOAT", logo: "assets/goat.jpeg" }
+    ];
+
     let mesSelecionado = referenciaAtual.mes;
     let anoSelecionado = referenciaAtual.ano;
     let modoAtivo = "semana";
@@ -946,21 +1104,19 @@
       return mapa;
     }
 
-    function normalizarTimes(timesServidor) {
-      if (!Array.isArray(timesServidor)) return [];
+    function montarTimesVisuais(resposta) {
+      const membros = resposta?.membrosEquipes || {};
+      const metas = resposta?.metas || {};
+      const realizados = resposta?.equipes || {};
 
-      return timesServidor
-        .map(time => ({
-          id: String(time?.id || "").trim(),
-          nome: String(time?.nome || time?.id || "").trim(),
-          logo: String(time?.logo || "").trim(),
-          membros: Array.isArray(time?.membros)
-            ? time.membros.map(nome => String(nome || "").trim()).filter(Boolean)
-            : [],
-          meta: Number(time?.meta) || 0,
-          realizado: Number(time?.realizado) || 0
-        }))
-        .filter(time => time.id && time.nome);
+      return TIMES_VISUAIS.map(time => ({
+        ...time,
+        membros: Array.isArray(membros[time.id])
+          ? membros[time.id].map(nome => String(nome || "").trim()).filter(Boolean)
+          : [],
+        meta: Number(metas[time.id]) || 0,
+        realizado: Number(realizados[time.id]) || 0
+      }));
     }
 
     function valorVendedor(nome) {
@@ -1016,7 +1172,7 @@
           <section class="card painel-vazio">
             <div>
               <strong>Carregando times</strong>
-              <span>Os nomes, membros, metas e resultados vêm diretamente do Apps Script.</span>
+              <span>Membros, metas e resultados são sincronizados com o Apps Script.</span>
             </div>
           </section>
         `;
@@ -1175,15 +1331,15 @@
         if (idRequisicao !== requisicaoAtual) return;
 
         const sucesso = resposta && (resposta.ok === true || resposta.sucesso === true);
-        if (!sucesso || !Array.isArray(resposta.times)) {
+        if (!sucesso || !resposta.membrosEquipes || !resposta.metas || !resposta.equipes) {
           throw new Error(
             resposta?.erro ||
             resposta?.mensagem ||
-            "O Apps Script precisa ser atualizado para a nova estrutura de times."
+            "O Apps Script não retornou membros, metas ou resultados dos times."
           );
         }
 
-        timesAtuais = normalizarTimes(resposta.times);
+        timesAtuais = montarTimesVisuais(resposta);
         dadosAtuais = normalizarMapaVendedores(
           resposta.vendedores,
           resposta.vendedoresLista
