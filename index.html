@@ -1051,32 +1051,321 @@
     .loading-dots i:nth-child(2) { animation-delay: .14s; background: var(--orange); box-shadow: 0 0 10px rgba(255,114,0,.55); }
     .loading-dots i:nth-child(3) { animation-delay: .28s; }
 
-    .painel.is-refreshing .equipe-card,
-    .painel.is-refreshing .total-card {
-      animation: cardRefresh .7s cubic-bezier(.2,.8,.2,1) both;
+    /* Ao trocar semana/mês, somente os números entram em estado de carregamento. */
+    .painel.is-refreshing .valor-integrante,
+    .painel.is-refreshing .kpi-valor,
+    .painel.is-refreshing .percentual,
+    .painel.is-refreshing .total-valor {
+      position: relative;
+      color: transparent !important;
+      text-shadow: none !important;
+      min-width: 58px;
     }
-    .painel.is-refreshing .equipe-card:nth-child(2) { animation-delay: .025s; }
-    .painel.is-refreshing .equipe-card:nth-child(3) { animation-delay: .05s; }
-    .painel.is-refreshing .equipe-card:nth-child(4) { animation-delay: .075s; }
-    .painel.is-refreshing .equipe-card:nth-child(5) { animation-delay: .10s; }
-    .painel.is-refreshing .equipe-card:nth-child(6) { animation-delay: .125s; }
-    .painel.is-refreshing .equipe-card:nth-child(7) { animation-delay: .15s; }
-    .painel.is-refreshing .equipe-card:nth-child(8) { animation-delay: .175s; }
+    .painel.is-refreshing .valor-integrante::after,
+    .painel.is-refreshing .kpi-valor::after,
+    .painel.is-refreshing .percentual::after,
+    .painel.is-refreshing .total-valor::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: .78em;
+      height: .78em;
+      margin: -.39em 0 0 -.39em;
+      border: 2px solid rgba(255,255,255,.18);
+      border-top-color: var(--orange-light);
+      border-radius: 50%;
+      box-sizing: border-box;
+      animation: resultSpin .72s linear infinite;
+      filter: drop-shadow(0 0 5px rgba(255,114,0,.28));
+    }
+    .painel.is-refreshing .total-valor::after { border-width: 3px; }
+    @keyframes resultSpin { to { transform: rotate(360deg); } }
 
     @keyframes loaderSpin { to { transform: rotate(360deg); } }
     @keyframes loaderPulse { 50% { transform: scale(1.08); filter: drop-shadow(0 0 24px rgba(255,114,0,.42)); } }
     @keyframes loaderAura { 50% { transform: scale(1.07); opacity: .58; } }
     @keyframes loaderDot { 0%,100% { transform: translateY(0) scale(.72); opacity:.45; } 50% { transform: translateY(-5px) scale(1); opacity:1; } }
-    @keyframes cardRefresh { 0% { opacity:.42; transform: scale(.985) translateY(4px); filter: blur(1.5px); } 100% { opacity:1; transform:none; filter:none; } }
 
     @media (prefers-reduced-motion: reduce) {
       .loading-ring, .loading-ring::before, .loading-star, .loading-screen::before, .loading-dots i,
-      .painel.is-refreshing .equipe-card, .painel.is-refreshing .total-card { animation: none !important; }
+      .painel.is-refreshing .valor-integrante::after, .painel.is-refreshing .kpi-valor::after,
+      .painel.is-refreshing .percentual::after, .painel.is-refreshing .total-valor::after { animation: none !important; }
     }
 
-  </style>
+  
+
+    /* ===== AJUSTE FINAL DE ENCAIXE + LOADING DA ESTRELA ===== */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    /* Reserva alguns pixels de segurança para nunca cortar bordas inferiores/laterais. */
+    .shell {
+      width: min(1880px, calc(100vw - clamp(12px, 1.5vw, 28px))) !important;
+      height: calc(100dvh - clamp(10px, 1.2vh, 18px)) !important;
+      margin: clamp(5px, .6vh, 9px) auto !important;
+      padding: 0 !important;
+    }
+    .layout {
+      width: 100% !important;
+      height: 100% !important;
+      max-height: 100% !important;
+    }
+    .painel {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      min-width: 0 !important;
+      min-height: 0 !important;
+    }
+    .card {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+      min-width: 0 !important;
+      min-height: 0 !important;
+    }
+    .equipe-topo, .equipe-kpis, .integrantes, .integrante,
+    .logo-frame, .total-card { min-width: 0 !important; min-height: 0 !important; }
+
+    /* Em telas baixas, reduz cabeçalho/filtros antes de comprimir ou cortar os cards. */
+    @media (max-height: 760px) and (min-width: 761px) {
+      .topbar { padding-block: 5px !important; }
+      .brand-logo { width: clamp(116px, 10vw, 160px) !important; }
+      .brand-divider { height: 34px !important; }
+      .titulo-principal { font-size: clamp(19px, 1.75vw, 28px) !important; }
+      .eyebrow, .subtitle, .ultima-atualizacao { display: none !important; }
+      .period-toolbar { padding-block: 3px !important; }
+      .mes-select, .semana-btn { height: 27px !important; }
+      .equipe-topo { padding-block: 4px !important; }
+      .logo-frame { width: min(100%, clamp(60px, 7vw, 94px)) !important; }
+      .integrante { font-size: clamp(7.5px, .62vw, 10.5px) !important; }
+      .equipe-nome { font-size: clamp(9px, .75vw, 12px) !important; }
+      .equipe-kpis { padding-block: 3px !important; }
+      .kpi-label { margin-bottom: 2px !important; }
+      .percentual { font-size: clamp(18px, 1.7vw, 28px) !important; }
+    }
+
+    /* Tela inicial: estrela grande, limpa, sem círculos ao redor. */
+    .loading-screen::before { display: none !important; }
+    .loading-mark {
+      width: clamp(150px, 16vw, 230px) !important;
+      filter: drop-shadow(0 0 34px rgba(43,145,255,.24));
+    }
+    .loading-ring, .loading-ring::before { display: none !important; }
+    .loading-mark::before,
+    .loading-mark::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(90deg, transparent, rgba(43,145,255,.34), rgba(255,114,0,.26), transparent);
+      filter: blur(1px);
+      opacity: .55;
+      animation: starBeam 1.8s ease-in-out infinite;
+    }
+    .loading-mark::before { width: 145%; height: 1px; }
+    .loading-mark::after { width: 1px; height: 145%; }
+    .loading-star {
+      position: relative;
+      z-index: 2;
+      width: 82% !important;
+      height: 82% !important;
+      filter: drop-shadow(0 0 22px rgba(43,145,255,.65)) drop-shadow(0 0 42px rgba(255,114,0,.22)) !important;
+      animation: loaderStarPremium 1.55s ease-in-out infinite !important;
+    }
+    @keyframes loaderStarPremium {
+      0%,100% { transform: scale(.96); filter: drop-shadow(0 0 18px rgba(43,145,255,.48)) drop-shadow(0 0 34px rgba(255,114,0,.16)); }
+      50% { transform: scale(1.06); filter: drop-shadow(0 0 32px rgba(43,145,255,.82)) drop-shadow(0 0 58px rgba(255,114,0,.34)); }
+    }
+    @keyframes starBeam { 0%,100% { opacity:.22; transform:translate(-50%,-50%) scale(.82); } 50% { opacity:.72; transform:translate(-50%,-50%) scale(1.08); } }
+
+    @media (max-width: 760px) {
+      .shell {
+        width: calc(100vw - 8px) !important;
+        height: calc(100dvh - 8px) !important;
+        margin: 4px auto !important;
+      }
+      .loading-mark { width: clamp(138px, 42vw, 190px) !important; }
+    }
+
+
+    /* ===== AJUSTE FINAL DE ENCAIXE / LEGIBILIDADE ===== */
+    @media (min-width: 761px) {
+      html, body {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+      }
+
+      body { min-height: 100dvh !important; }
+
+      .shell {
+        width: min(1880px, calc(100vw - 18px)) !important;
+        height: calc(100dvh - 10px) !important;
+        min-height: 0 !important;
+        margin: 5px auto !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+      }
+
+      .layout {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        max-height: 100% !important;
+        grid-template-rows: auto auto minmax(0, 1fr) !important;
+        gap: clamp(5px, .62vh, 8px) !important;
+        overflow: hidden !important;
+      }
+
+      .topbar {
+        min-height: 0 !important;
+        height: clamp(72px, 9.3vh, 92px) !important;
+        padding: clamp(7px, .85vh, 11px) clamp(14px, 1.25vw, 22px) !important;
+        border-radius: 14px 14px 5px 5px !important;
+        flex: 0 0 auto !important;
+      }
+
+      .brand-logo { width: clamp(150px, 12vw, 210px) !important; }
+      .brand-divider { height: clamp(42px, 5.2vh, 56px) !important; }
+      .titulo-principal { font-size: clamp(23px, 2.05vw, 35px) !important; line-height: .98 !important; }
+      .eyebrow { font-size: clamp(8px, .58vw, 11px) !important; }
+      .subtitle { font-size: clamp(8px, .62vw, 11px) !important; }
+      .periodo-principal { font-size: clamp(10px, .72vw, 13px) !important; }
+      .ultima-atualizacao { font-size: clamp(7px, .52vw, 9px) !important; }
+
+      .period-toolbar {
+        min-height: 0 !important;
+        height: clamp(38px, 4.8vh, 46px) !important;
+        padding: 4px 10px !important;
+        flex: 0 0 auto !important;
+        overflow: hidden !important;
+      }
+      .mes-select, .semana-btn { height: clamp(28px, 3.45vh, 34px) !important; }
+
+      .painel {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        max-height: 100% !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        grid-template-rows: repeat(3, minmax(0, 1fr)) !important;
+        grid-auto-rows: unset !important;
+        gap: clamp(5px, .62vh, 8px) !important;
+        overflow: hidden !important;
+      }
+
+      .card {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        max-height: 100% !important;
+        border-radius: 14px !important;
+      }
+
+      .equipe-card {
+        grid-template-rows: minmax(0, 1fr) clamp(47px, 6.3vh, 61px) !important;
+      }
+
+      .equipe-topo {
+        min-height: 0 !important;
+        grid-template-columns: clamp(74px, 7.2vw, 112px) minmax(0, 1fr) !important;
+        gap: clamp(8px, .7vw, 12px) !important;
+        padding: clamp(5px, .62vh, 8px) clamp(8px, .7vw, 12px) !important;
+        align-items: center !important;
+        overflow: hidden !important;
+      }
+
+      .logo-frame {
+        width: min(100%, clamp(74px, 7.2vw, 112px)) !important;
+        max-width: 112px !important;
+        max-height: 100% !important;
+        border-radius: 14px !important;
+      }
+      .logo-frame img { border-radius: 13px !important; }
+
+      .integrantes {
+        min-height: 0 !important;
+        gap: clamp(2px, .25vh, 4px) !important;
+        align-content: center !important;
+        overflow: hidden !important;
+      }
+
+      .equipe-nome {
+        margin-bottom: clamp(2px, .25vh, 4px) !important;
+        padding: 4px 9px !important;
+        font-size: clamp(11px, .78vw, 15px) !important;
+        line-height: 1 !important;
+      }
+
+      .integrante {
+        grid-template-columns: minmax(0, 1fr) minmax(78px, 31%) !important;
+        column-gap: clamp(7px, .6vw, 11px) !important;
+        padding: 1px 0 !important;
+        font-size: clamp(10px, .70vw, 13.5px) !important;
+        line-height: 1.12 !important;
+        font-weight: 780 !important;
+      }
+      .nome { color: #f4f8ff !important; }
+      .valor-integrante {
+        color: #ffffff !important;
+        font-weight: 900 !important;
+        letter-spacing: -.015em !important;
+      }
+
+      .equipe-kpis {
+        min-height: 0 !important;
+        height: 100% !important;
+        padding: 4px 8px 5px !important;
+      }
+      .kpi { padding: 1px 6px !important; }
+      .kpi-label {
+        margin-bottom: 3px !important;
+        font-size: clamp(7px, .50vw, 9px) !important;
+      }
+      .kpi-valor {
+        font-size: clamp(10.5px, .82vw, 15.5px) !important;
+        font-weight: 950 !important;
+      }
+      .percentual {
+        font-size: clamp(22px, 1.75vw, 32px) !important;
+        line-height: .86 !important;
+      }
+
+      .total-card { padding: clamp(10px, 1.1vh, 16px) !important; }
+      .total-label { font-size: clamp(10px, .72vw, 14px) !important; }
+      .total-valor { font-size: clamp(38px, 3.5vw, 64px) !important; line-height: .95 !important; }
+      .total-info { font-size: clamp(7px, .5vw, 9px) !important; }
+      .developer-credit { font-size: 6px !important; bottom: 1px !important; }
+    }
+
+    /* Notebooks/telas baixas: preserva leitura dos membros sem cortar a última linha. */
+    @media (min-width: 761px) and (max-height: 820px) {
+      .topbar { height: 68px !important; }
+      .period-toolbar { height: 35px !important; }
+      .brand-logo { width: 138px !important; }
+      .brand-divider { height: 36px !important; }
+      .eyebrow, .subtitle, .ultima-atualizacao { display: none !important; }
+      .titulo-principal { font-size: clamp(20px, 1.65vw, 27px) !important; }
+      .mes-select, .semana-btn { height: 27px !important; }
+      .equipe-card { grid-template-rows: minmax(0, 1fr) 48px !important; }
+      .equipe-topo { grid-template-columns: clamp(62px, 6.2vw, 88px) minmax(0,1fr) !important; padding-block: 4px !important; }
+      .logo-frame { width: min(100%, clamp(62px, 6.2vw, 88px)) !important; }
+      .integrante { font-size: clamp(9px, .64vw, 11.5px) !important; line-height: 1.08 !important; }
+      .equipe-nome { font-size: clamp(9.5px, .7vw, 12.5px) !important; padding: 3px 8px !important; }
+      .kpi-label { margin-bottom: 2px !important; }
+      .percentual { font-size: clamp(19px, 1.55vw, 27px) !important; }
+    }
+
+</style>
 </head>
-<body>\n  <div class="loading-screen" id="loadingScreen" role="status" aria-live="polite" aria-label="Carregando times">
+<body>
+  <div class="loading-screen" id="loadingScreen" role="status" aria-live="polite" aria-label="Carregando times">
     <div class="loading-core">
       <div class="loading-mark" aria-hidden="true">
         <span class="loading-ring"></span>
@@ -1192,8 +1481,7 @@
       { id: "vip", nome: "VIP", logo: "assets/vip.jpeg" },
       { id: "winx", nome: "WINX", logo: "assets/winx.jpeg" },
       { id: "alfas", nome: "ALFAS", logo: "assets/alfas.jpeg" },
-      { id: "goat", nome: "GOAT", logo: "assets/goat.jpeg" },
-      { id: "elite", nome: "ELITE", logo: "assets/elite.png" }
+      { id: "goat", nome: "GOAT", logo: "assets/goat.jpeg" }
     ];
 
     let mesSelecionado = referenciaAtual.mes;
@@ -1209,6 +1497,7 @@
     let mesServidor = null;
     let anoServidor = null;
     let requisicaoAtual = 0;
+    let dadosRespostaAtual = {};
 
     function normalizarNome(valor) {
       return String(valor || "")
@@ -1329,17 +1618,14 @@
 
       painel.innerHTML = `
         ${timesAtuais.map(criarCardEquipe).join("")}
-
-        <section class="card marca-card" aria-label="Marca UNIFAHE">
-          <div class="hud">
-            <div class="hud-ring"></div>
-            <div class="marca-conteudo">
-              <img class="marca-logo" src="logoWhite.png" alt="UNIFAHE Faculdade a Distância">
-              <strong class="marca-nome">UNIFAHE</strong>
-              <span class="marca-sub">Faculdade a distância</span>
-            </div>
-          </div>
-        </section>
+        ${criarCardEquipe({
+          id: "elite",
+          nome: "ELITE",
+          logo: "assets/elite.png",
+          membros: Array.isArray(dadosRespostaAtual?.membrosEquipes?.elite) ? dadosRespostaAtual.membrosEquipes.elite : [],
+          meta: Number(dadosRespostaAtual?.metas?.elite) || 0,
+          realizado: Number(dadosRespostaAtual?.equipes?.elite) || 0
+        })}
 
         <section class="card total-card" aria-label="Total geral dos times">
           <span class="total-label">Total geral</span>
@@ -1545,11 +1831,24 @@
       } catch (erro) {
         if (idRequisicao !== requisicaoAtual) return;
         definirStatus("error", "Falha na conexão", erro.message || "Erro ao atualizar os dados.");
-        encerrarTelaInicial();
         console.error(erro);
+
+        // Na primeira abertura, nunca revela o painel sem dados completos.
+        // Mantém a experiência de carregamento e tenta novamente automaticamente.
+        if (primeiraCarga) {
+          if (loadingCopy) loadingCopy.textContent = "Conectando aos resultados dos times...";
+          window.setTimeout(() => {
+            if (primeiraCarga && idRequisicao === requisicaoAtual) {
+              atualizarDados();
+            }
+          }, 2500);
+        }
       } finally {
-        if (idRequisicao === requisicaoAtual) {
-          marcarCarregamento(false, { inicial: primeiraCarga });
+        // A tela inicial só é encerrada dentro do bloco de sucesso, depois de
+        // montar todos os times, resultados e cabeçalho. Em falha inicial,
+        // o loading permanece cobrindo 100% do painel.
+        if (idRequisicao === requisicaoAtual && !primeiraCarga) {
+          marcarCarregamento(false, { inicial: false });
         }
       }
     }
