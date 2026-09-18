@@ -29,8 +29,8 @@ var CONFIG_EQUIPES = {
   COLUNA_VENDEDOR: 5,     // E
   COLUNA_VALOR_TOTAL: 20, // T
 
-  // Segunda a sábado. Domingo não entra nem na semana nem no mês.
-  IGNORAR_DOMINGO: true,
+  // O painel considera somente dias úteis comerciais: segunda a sexta.
+  SOMENTE_SEGUNDA_A_SEXTA: true,
   CACHE_SEGUNDOS: 30
 };
 
@@ -67,185 +67,154 @@ var CONFIG_META_MILHAO = {
 
 
 /**
- * METAS SEMANAIS DAS EQUIPES
+ * CONFIGURAÇÃO DOS TIMES
  *
- * Edite somente os valores abaixo quando quiser alterar as metas.
- * No botão MÊS, a meta mensal é a soma das cinco semanas.
- * Opcional: você pode adicionar `mes: 150000` em uma equipe para
- * substituir a soma automática por uma meta mensal fixa.
- */
-var CONFIG_METAS_EQUIPES = {
-   predadores: {
-    semana1: 36900,
-    semana2: 36900,
-    semana3: 36900,
-    semana4: 31900,
-    semana5: 50000
-
-  },
-
-  invictus: {
-    semana1: 32675,
-    semana2: 32675,
-    semana3: 32675,
-    semana4: 26900,
-    semana5: 50000
-  },
-
-  evolution: {
-    semana1: 33450,
-    semana2: 33450,
-    semana3: 33450,
-    semana4: 28450,
-    semana5: 50000
-  },
-
-  vip: {
-    semana1: 38450,
-    semana2: 38450,
-    semana3: 34225,
-    semana4: 32675,
-    semana5: 50000
-  },
-
-  winx: {
-    semana1: 29225,
-    semana2: 29225,
-    semana3: 33450,
-    semana4: 28450,
-    semana5: 50000
-  },
-
-  alfas: {
-    semana1: 36900,
-    semana2: 36900,
-    semana3: 36900,
-    semana4: 31900,
-    semana5: 50000
-  },
-
-  goat: {
-    semana1: 32675,
-    semana2: 32675,
-    semana3: 32675,
-    semana4: 28450,
-    semana5: 50000
-  }
-};
-
-
-/**
- * MEMBROS DAS EQUIPES
+ * Esta é a única fonte de verdade para:
+ * - nome de cada time;
+ * - logo;
+ * - membros;
+ * - metas semanais e mensal.
  *
- * O Apps Script usa esta configuração para calcular o realizado de cada baia.
- * Na primeira semana, usa `semana1`. Nas demais semanas e no mês, usa `padrao`.
+ * O index.html NÃO mantém uma cópia fixa dessas informações.
+ * Sempre que esta configuração for alterada e o Web App for publicado,
+ * o painel passa a usar os novos dados automaticamente.
+ *
+ * A meta mensal, quando `mes` não for informada, é a soma das semanas.
  */
-var CONFIG_MEMBROS_EQUIPES = {
-  predadores: {
-    padrao: [
+var CONFIG_TIMES = [
+  {
+    id: "predadores",
+    nome: "Predadores",
+    logo: "assets/predadores.jpeg",
+    membros: [
       "Gabriel Gorgonio",
       "Maria Laura",
       "Raíssa Fontoura",
       "Rodolfo Henrique"
     ],
-    semana1: [
-      "Camilly Longhi",
-      "Paola Fernandes",
-      "Jane menezes"
-    ]
+    metas: {
+      semana1: 36900,
+      semana2: 36900,
+      semana3: 36900,
+      semana4: 31900,
+      semana5: 50000
+    }
   },
 
-  invictus: {
-    padrao: [
+  {
+    id: "invictus",
+    nome: "Invictus",
+    logo: "assets/invictus.jpeg",
+    membros: [
       "Letícia Vieira",
       "Vinicius Ribeiro",
       "Chrystian",
       "Melissa Ferreira"
     ],
-    semana1: [
-      "Letícia Goretti",
-      "Ana Kelly",
-      "Ana Luiza",
-      "Leticia Pereira"
-    ]
+    metas: {
+      semana1: 32675,
+      semana2: 32675,
+      semana3: 32675,
+      semana4: 26900,
+      semana5: 50000
+    }
   },
 
-  evolution: {
-    padrao: [
+  {
+    id: "evolution",
+    nome: "Evolution",
+    logo: "assets/evolution.jpeg",
+    membros: [
       "Giseli de Jesus",
       "Ana Kelly",
       "Leticia Pereira",
-      "Carliane",
+      "Carliane"
     ],
-    semana1: [
-      "Cauê Galates",
-      "Lara Baptista",
-      "Daniela Moura",
-      "Letícia Vieira"
-    ]
+    metas: {
+      semana1: 33450,
+      semana2: 33450,
+      semana3: 33450,
+      semana4: 28450,
+      semana5: 50000
+    }
   },
 
-  vip: {
-    padrao: [
+  {
+    id: "vip",
+    nome: "VIP",
+    logo: "assets/vip.jpeg",
+    membros: [
       "Cauê Galates",
       "Daniela Moura",
       "Gabrielle Carvalho",
       "Kevin Cristovão"
     ],
-    semana1: [
-      "Maria Laura",
-      "Gabriel Gorgonio",
-      "Raíssa Fontoura",
-      "Rodolfo Henrique"
-    ]
+    metas: {
+      semana1: 38450,
+      semana2: 38450,
+      semana3: 34225,
+      semana4: 32675,
+      semana5: 50000
+    }
   },
 
-  winx: {
-    padrao: [
+  {
+    id: "winx",
+    nome: "Winx",
+    logo: "assets/winx.jpeg",
+    membros: [
       "Alana Santos",
       "Camilly Longhi",
       "Jane menezes",
       "Paola Fernandes"
     ],
-    semana1: [
-      "Vinicius Ribeiro",
-      "Gabrielle Carvalho",
-      "Melissa Ferreira",
-      "Kevin Cristovão"
-    ]
+    metas: {
+      semana1: 29225,
+      semana2: 29225,
+      semana3: 33450,
+      semana4: 28450,
+      semana5: 50000
+    }
   },
 
-  alfas: {
-    padrao: [
+  {
+    id: "alfas",
+    nome: "Alfas",
+    logo: "assets/alfas.jpeg",
+    membros: [
       "Nathália",
       "Fabiana Godoy",
       "Bruna Moraes",
       "Gabrielle Andrade"
     ],
-    semana1: [
-      "Fabiana Godoy",
-      "Bruna Moraes",
-      "Nathália",
-      "Gabrielle Andrade"
-    ]
+    metas: {
+      semana1: 36900,
+      semana2: 36900,
+      semana3: 36900,
+      semana4: 31900,
+      semana5: 50000
+    }
   },
 
-  goat: {
-    padrao: [
+  {
+    id: "goat",
+    nome: "GOAT",
+    logo: "assets/goat.jpeg",
+    membros: [
       "Beatriz Cunha",
       "Lara Baptista",
       "Lucas Eduardo",
       "Estephany"
     ],
-    semana1: [
-      "Beatriz Cunha",
-      "Lucas Eduardo",
-      "Alana Santos",
-      "Eduardo Rogério"
-    ]
+    metas: {
+      semana1: 32675,
+      semana2: 32675,
+      semana3: 32675,
+      semana4: 28450,
+      semana5: 50000
+    }
   }
-};
-
+];
 
 
 /**
@@ -255,8 +224,8 @@ var CONFIG_MEMBROS_EQUIPES = {
  * URL normal do Apps Script
  *
  * Painel das equipes:
- * ?rota=equipes&visao=semana&semana=1
- * ?rota=equipes&visao=mes
+ * ?rota=equipes&visao=semana&semana=1&mes=9&ano=2026
+ * ?rota=equipes&visao=mes&mes=9&ano=2026
  *
  * Painel de crescimento:
  * ?rota=crescimento&mesBase=6&anoBase=2026&mesAtual=7&anoAtual=2026
@@ -495,7 +464,8 @@ function responderEquipes(e) {
   var callback = e.parameter.callback || "";
   var hoje = new Date();
 
-  // Evita diferença de data entre o servidor do Apps Script e o Brasil.
+  // O seletor do painel pode informar mês e ano.
+  // Sem parâmetros, usa automaticamente o mês/ano atuais em São Paulo.
   var mesAtual = Number(
     Utilities.formatDate(
       hoje,
@@ -519,11 +489,24 @@ function responderEquipes(e) {
     mes = mesAtual;
   }
 
-  var semana = converterInteiroEquipes(e.parameter.semana) ||
-    descobrirSemanaAtual(hoje);
+  if (ano < 2000 || ano > 2100) {
+    ano = anoAtual;
+  }
 
-  if (semana < 1 || semana > 5) {
+  var semanasDisponiveis = obterSemanasComerciaisMes(mes, ano);
+  var semanaPadrao = (mes === mesAtual && ano === anoAtual)
+    ? descobrirSemanaAtual(hoje)
+    : 1;
+
+  var semana = converterInteiroEquipes(e.parameter.semana) ||
+    semanaPadrao;
+
+  if (semana < 1) {
     semana = 1;
+  }
+
+  if (semana > semanasDisponiveis.length) {
+    semana = semanasDisponiveis.length || 1;
   }
 
   var visao = normalizarTexto(
@@ -537,7 +520,7 @@ function responderEquipes(e) {
   var cache = CacheService.getScriptCache();
 
   var cacheKey = [
-    "painel_equipes_v2",
+    "painel_equipes_v4",
     visao,
     ano,
     mes,
@@ -565,32 +548,49 @@ function responderEquipes(e) {
       );
     }
 
-    // Metas e composição das baias são lidas em toda requisição.
-    // As vendas podem continuar em cache por alguns segundos.
+    // Configuração dos times é relida em toda requisição.
+    // Assim nomes, membros e metas não ficam presos ao cache de vendas.
     dadosResposta.metas = obterMetasEquipes(semana, visao);
-    dadosResposta.membrosEquipes = obterMembrosTodasEquipes(
-      semana,
-      visao
-    );
+    dadosResposta.membrosEquipes = obterMembrosTodasEquipes();
     dadosResposta.equipes = calcularTotaisEquipes(
-      dadosResposta.vendedores,
-      semana,
-      visao
+      dadosResposta.vendedores
     );
     dadosResposta.totalEquipes = somarTotaisEquipes(
       dadosResposta.equipes
     );
+    dadosResposta.times = montarTimesPainel(
+      semana,
+      visao,
+      dadosResposta.equipes,
+      dadosResposta.metas
+    );
+    dadosResposta.periodosSemanais = semanasDisponiveis;
+    dadosResposta.mes = mes;
+    dadosResposta.ano = ano;
   } catch (erro) {
+    var metasErro = obterMetasEquipes(semana, visao);
+    var equipesErro = calcularTotaisEquipes({});
+
     dadosResposta = {
       sucesso: false,
       painel: "equipes",
       visao: visao.toLowerCase(),
+      semana: semana,
+      mes: mes,
+      ano: ano,
       mensagem: erro.message,
       vendedores: {},
       vendedoresLista: [],
-      membrosEquipes: obterMembrosTodasEquipes(semana, visao),
-      equipes: calcularTotaisEquipes({}, semana, visao),
-      metas: obterMetasEquipes(semana, visao),
+      membrosEquipes: obterMembrosTodasEquipes(),
+      equipes: equipesErro,
+      metas: metasErro,
+      times: montarTimesPainel(
+        semana,
+        visao,
+        equipesErro,
+        metasErro
+      ),
+      periodosSemanais: semanasDisponiveis,
       totalEquipes: 0,
       totalGeral: 0
     };
@@ -626,7 +626,7 @@ function montarDadosEquipes(mes, ano, semana, visao) {
   visao = normalizarTexto(visao || "SEMANA");
 
   if (mes < 1 || mes > 12 || ano < 2000) {
-    throw new Error("Mês ou ano inválido no filtro do painel de times.");
+    throw new Error("Mês ou ano inválido no painel de times.");
   }
 
   if (visao !== "MES") {
@@ -767,9 +767,7 @@ function montarDadosEquipes(mes, ano, semana, visao) {
   });
 
   var equipes = calcularTotaisEquipes(
-    vendedores,
-    semana,
-    visao
+    vendedores
   );
 
   var totalEquipes = somarTotaisEquipes(equipes);
@@ -791,9 +789,16 @@ function montarDadosEquipes(mes, ano, semana, visao) {
     linhasConsideradas: linhasConsideradas,
     vendedores: vendedores,
     vendedoresLista: vendedoresLista,
-    membrosEquipes: obterMembrosTodasEquipes(semana, visao),
+    membrosEquipes: obterMembrosTodasEquipes(),
     equipes: equipes,
     metas: metas,
+    times: montarTimesPainel(
+      semana,
+      visao,
+      equipes,
+      metas
+    ),
+    periodosSemanais: obterSemanasComerciaisMes(mes, ano),
     totalEquipes: totalEquipes,
     totalGeral: totalGeral,
     atualizadoEm: Utilities.formatDate(
@@ -805,6 +810,9 @@ function montarDadosEquipes(mes, ano, semana, visao) {
 }
 
 function criarRetornoEquipesVazio(mes, ano, semana, visao, periodo, metas) {
+  var equipes = calcularTotaisEquipes({});
+  var metasAtuais = metas || obterMetasEquipes(semana, visao);
+
   return {
     sucesso: true,
     painel: "equipes",
@@ -815,52 +823,65 @@ function criarRetornoEquipesVazio(mes, ano, semana, visao, periodo, metas) {
     ano: ano,
     vendedores: {},
     vendedoresLista: [],
-    membrosEquipes: obterMembrosTodasEquipes(semana, visao),
-    equipes: calcularTotaisEquipes({}, semana, visao),
-    metas: metas || obterMetasEquipes(semana, visao),
+    membrosEquipes: obterMembrosTodasEquipes(),
+    equipes: equipes,
+    metas: metasAtuais,
+    times: montarTimesPainel(
+      semana,
+      visao,
+      equipes,
+      metasAtuais
+    ),
+    periodosSemanais: obterSemanasComerciaisMes(mes, ano),
     totalEquipes: 0,
     totalGeral: 0,
-    atualizadoEm: new Date().toISOString()
+    atualizadoEm: Utilities.formatDate(
+      new Date(),
+      CONFIG_EQUIPES.FUSO_HORARIO,
+      "yyyy-MM-dd'T'HH:mm:ss"
+    )
   };
 }
 
 
 /* =========================================================
-   TOTAIS DAS EQUIPES
+   TOTAIS / CONFIGURAÇÃO DOS TIMES
 ========================================================= */
 
-function obterMembrosEquipe(equipeId, semana, visao) {
-  var configuracao = CONFIG_MEMBROS_EQUIPES[equipeId] || {};
-  var usarSemana1 =
-    normalizarTexto(visao) !== "MES" &&
-    converterInteiroEquipes(semana) === 1;
+function obterTimeConfig(equipeId) {
+  var id = normalizarTexto(equipeId);
 
-  if (usarSemana1 && Array.isArray(configuracao.semana1)) {
-    return configuracao.semana1;
+  for (var i = 0; i < CONFIG_TIMES.length; i++) {
+    if (normalizarTexto(CONFIG_TIMES[i].id) === id) {
+      return CONFIG_TIMES[i];
+    }
   }
 
-  return Array.isArray(configuracao.padrao)
-    ? configuracao.padrao
+  return null;
+}
+
+
+function obterMembrosEquipe(equipeId) {
+  var time = obterTimeConfig(equipeId);
+
+  return time && Array.isArray(time.membros)
+    ? time.membros.slice()
     : [];
 }
 
 
-function obterMembrosTodasEquipes(semana, visao) {
+function obterMembrosTodasEquipes() {
   var membrosEquipes = {};
 
-  Object.keys(CONFIG_MEMBROS_EQUIPES).forEach(function(equipeId) {
-    membrosEquipes[equipeId] = obterMembrosEquipe(
-      equipeId,
-      semana,
-      visao
-    ).slice();
+  CONFIG_TIMES.forEach(function(time) {
+    membrosEquipes[time.id] = obterMembrosEquipe(time.id);
   });
 
   return membrosEquipes;
 }
 
 
-function calcularTotaisEquipes(vendedores, semana, visao) {
+function calcularTotaisEquipes(vendedores) {
   var vendedoresNormalizados = {};
   var totaisEquipes = {};
 
@@ -878,8 +899,8 @@ function calcularTotaisEquipes(vendedores, semana, visao) {
     );
   });
 
-  Object.keys(CONFIG_MEMBROS_EQUIPES).forEach(function(equipeId) {
-    var membros = obterMembrosEquipe(equipeId, semana, visao);
+  CONFIG_TIMES.forEach(function(time) {
+    var membros = obterMembrosEquipe(time.id);
     var total = 0;
 
     membros.forEach(function(nome) {
@@ -888,7 +909,7 @@ function calcularTotaisEquipes(vendedores, semana, visao) {
       );
     });
 
-    totaisEquipes[equipeId] = arredondarMoedaEquipes(total);
+    totaisEquipes[time.id] = arredondarMoedaEquipes(total);
   });
 
   return totaisEquipes;
@@ -907,16 +928,16 @@ function somarTotaisEquipes(equipes) {
 
 
 /* =========================================================
-   METAS DAS EQUIPES
+   METAS DOS TIMES
 ========================================================= */
 
 function obterMetasEquipes(semana, visao) {
   var metas = {};
-  var chaveSemana = "semana" + semana;
+  var chaveSemana = "semana" + converterInteiroEquipes(semana);
   var modoMes = normalizarTexto(visao) === "MES";
 
-  Object.keys(CONFIG_METAS_EQUIPES).forEach(function(equipeId) {
-    var configuracao = CONFIG_METAS_EQUIPES[equipeId] || {};
+  CONFIG_TIMES.forEach(function(time) {
+    var configuracao = time.metas || {};
 
     if (modoMes) {
       if (
@@ -924,21 +945,23 @@ function obterMetasEquipes(semana, visao) {
         configuracao.mes !== null &&
         configuracao.mes !== ""
       ) {
-        metas[equipeId] = converterNumeroEquipes(configuracao.mes);
+        metas[time.id] = converterNumeroEquipes(configuracao.mes);
         return;
       }
 
-      metas[equipeId] =
-        converterNumeroEquipes(configuracao.semana1) +
-        converterNumeroEquipes(configuracao.semana2) +
-        converterNumeroEquipes(configuracao.semana3) +
-        converterNumeroEquipes(configuracao.semana4) +
-        converterNumeroEquipes(configuracao.semana5);
+      var metaMensal = 0;
 
+      for (var i = 1; i <= 5; i++) {
+        metaMensal += converterNumeroEquipes(
+          configuracao["semana" + i]
+        );
+      }
+
+      metas[time.id] = arredondarMoedaEquipes(metaMensal);
       return;
     }
 
-    metas[equipeId] = converterNumeroEquipes(
+    metas[time.id] = converterNumeroEquipes(
       configuracao[chaveSemana]
     );
   });
@@ -947,68 +970,115 @@ function obterMetasEquipes(semana, visao) {
 }
 
 
+function montarTimesPainel(semana, visao, equipes, metas) {
+  equipes = equipes || {};
+  metas = metas || obterMetasEquipes(semana, visao);
+
+  return CONFIG_TIMES.map(function(time) {
+    return {
+      id: String(time.id || "").trim(),
+      nome: String(time.nome || time.id || "").trim(),
+      logo: String(time.logo || "").trim(),
+      membros: obterMembrosEquipe(time.id),
+      meta: arredondarMoedaEquipes(
+        converterNumeroEquipes(metas[time.id])
+      ),
+      realizado: arredondarMoedaEquipes(
+        converterNumeroEquipes(equipes[time.id])
+      )
+    };
+  });
+}
+
+
 /* =========================================================
    PERÍODOS
 ========================================================= */
 
 /**
- * Semanas comerciais configuradas para julho de 2026:
- * 1ª: 1 a 4
- * 2ª: 6 a 11
- * 3ª: 13 a 18
- * 4ª: 20 a 25
- * 5ª: 27 até o final do mês
+ * Monta as semanas comerciais do mês automaticamente.
+ *
+ * Regras:
+ * - considera somente segunda a sexta;
+ * - sábado e domingo ficam fora;
+ * - a primeira semana pode ser parcial;
+ * - cada nova segunda-feira inicia uma nova semana;
+ * - ao virar o mês, as faixas são recalculadas automaticamente.
+ *
+ * Exemplo para setembro/2026:
+ * 1ª: 01 a 04
+ * 2ª: 07 a 11
+ * 3ª: 14 a 18
+ * 4ª: 21 a 25
+ * 5ª: 28 a 30
  */
-function obterPeriodoSemana(semana, mes, ano) {
+function obterSemanasComerciaisMes(mes, ano) {
+  mes = converterInteiroEquipes(mes);
+  ano = converterInteiroEquipes(ano);
+
   var ultimoDiaDoMes = new Date(
     ano,
     mes,
     0
   ).getDate();
 
-  var periodos = {
-    1: {
-      tipo: "semana",
-      inicio: 1,
-      fim: Math.min(4, ultimoDiaDoMes),
-      mes: mes,
-      ano: ano
-    },
+  var semanas = [];
+  var semanaAtual = null;
 
-    2: {
-      tipo: "semana",
-      inicio: 6,
-      fim: Math.min(11, ultimoDiaDoMes),
-      mes: mes,
-      ano: ano
-    },
+  for (var dia = 1; dia <= ultimoDiaDoMes; dia++) {
+    var diaSemana = new Date(
+      Date.UTC(ano, mes - 1, dia)
+    ).getUTCDay();
 
-    3: {
-      tipo: "semana",
-      inicio: 13,
-      fim: Math.min(18, ultimoDiaDoMes),
-      mes: mes,
-      ano: ano
-    },
-
-    4: {
-      tipo: "semana",
-      inicio: 20,
-      fim: Math.min(25, ultimoDiaDoMes),
-      mes: mes,
-      ano: ano
-    },
-
-    5: {
-      tipo: "semana",
-      inicio: 27,
-      fim: ultimoDiaDoMes,
-      mes: mes,
-      ano: ano
+    // 0 = domingo | 6 = sábado
+    if (diaSemana === 0 || diaSemana === 6) {
+      continue;
     }
-  };
 
-  return periodos[semana] || periodos[1];
+    // A primeira data útil abre a 1ª semana.
+    // Depois disso, cada segunda-feira abre uma nova semana.
+    if (!semanaAtual || diaSemana === 1) {
+      semanaAtual = {
+        tipo: "semana",
+        numero: semanas.length + 1,
+        inicio: dia,
+        fim: dia,
+        mes: mes,
+        ano: ano,
+        diasConsiderados: "segunda a sexta"
+      };
+
+      semanas.push(semanaAtual);
+    }
+
+    semanaAtual.fim = dia;
+  }
+
+  return semanas;
+}
+
+
+function obterPeriodoSemana(semana, mes, ano) {
+  var semanas = obterSemanasComerciaisMes(mes, ano);
+  var numeroSemana = converterInteiroEquipes(semana);
+
+  if (numeroSemana < 1) {
+    numeroSemana = 1;
+  }
+
+  if (numeroSemana > semanas.length) {
+    numeroSemana = semanas.length || 1;
+  }
+
+  return semanas[numeroSemana - 1] || {
+    tipo: "semana",
+    numero: 1,
+    inicio: 1,
+    fim: 1,
+    mes: mes,
+    ano: ano,
+    diasConsiderados: "segunda a sexta"
+  };
 }
 
 
@@ -1019,14 +1089,14 @@ function obterPeriodoMes(mes, ano) {
     fim: new Date(ano, mes, 0).getDate(),
     mes: mes,
     ano: ano,
-    diasConsiderados: "segunda a sábado"
+    diasConsiderados: "segunda a sexta"
   };
 }
 
 
 /**
- * Retorna true para segunda, terça, quarta, quinta, sexta e sábado.
- * Domingo (getDay() === 0) não entra no total mensal.
+ * Retorna true somente para segunda, terça, quarta, quinta e sexta.
+ * Sábado e domingo não entram nos totais do painel de times.
  */
 function diaUtilComercial(dia, mes, ano) {
   var ultimoDia = new Date(ano, mes, 0).getDate();
@@ -1035,9 +1105,11 @@ function diaUtilComercial(dia, mes, ano) {
     return false;
   }
 
-  var data = new Date(ano, mes - 1, dia);
+  var diaSemana = new Date(
+    Date.UTC(ano, mes - 1, dia)
+  ).getUTCDay();
 
-  return data.getDay() !== 0;
+  return diaSemana >= 1 && diaSemana <= 5;
 }
 
 
@@ -1154,7 +1226,7 @@ function dataPertenceAoPeriodoEquipes(dataVenda, periodo) {
   }
 
   if (
-    CONFIG_EQUIPES.IGNORAR_DOMINGO &&
+    CONFIG_EQUIPES.SOMENTE_SEGUNDA_A_SEXTA &&
     !diaUtilComercial(
       dataVenda.dia,
       dataVenda.mes,
@@ -1174,6 +1246,8 @@ function arredondarMoedaEquipes(valor) {
 
 
 function descobrirSemanaAtual(data) {
+  data = data || new Date();
+
   var dia = Number(
     Utilities.formatDate(
       data,
@@ -1182,23 +1256,36 @@ function descobrirSemanaAtual(data) {
     )
   );
 
-  if (dia <= 5) {
-    return 1;
+  var mes = Number(
+    Utilities.formatDate(
+      data,
+      CONFIG_EQUIPES.FUSO_HORARIO,
+      "M"
+    )
+  );
+
+  var ano = Number(
+    Utilities.formatDate(
+      data,
+      CONFIG_EQUIPES.FUSO_HORARIO,
+      "yyyy"
+    )
+  );
+
+  var semanas = obterSemanasComerciaisMes(mes, ano);
+  var semanaEncontrada = 1;
+
+  // Em sábado/domingo, mantém a semana comercial imediatamente anterior.
+  // Na segunda-feira seguinte, avança automaticamente para a próxima.
+  for (var i = 0; i < semanas.length; i++) {
+    if (dia >= semanas[i].inicio) {
+      semanaEncontrada = i + 1;
+    } else {
+      break;
+    }
   }
 
-  if (dia <= 12) {
-    return 2;
-  }
-
-  if (dia <= 19) {
-    return 3;
-  }
-
-  if (dia <= 26) {
-    return 4;
-  }
-
-  return 5;
+  return semanaEncontrada;
 }
 
 
