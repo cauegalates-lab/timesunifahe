@@ -949,145 +949,9 @@
       .period-toolbar { padding-block: 3px !important; }
       .mes-select, .semana-btn { height: 28px !important; }
     }
-
-
-    /* Carregamento premium — entrada do painel e troca manual de período */
-    .loading-screen {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      display: grid;
-      place-items: center;
-      background:
-        radial-gradient(circle at 50% 42%, rgba(8,103,232,.22), transparent 27%),
-        radial-gradient(circle at 54% 56%, rgba(255,114,0,.12), transparent 24%),
-        linear-gradient(145deg, #020d22 0%, #031638 54%, #020b1c 100%);
-      opacity: 1;
-      visibility: visible;
-      transition: opacity .48s ease, visibility .48s ease;
-      overflow: hidden;
-    }
-    .loading-screen::before {
-      content: "";
-      position: absolute;
-      width: min(70vw, 720px);
-      aspect-ratio: 1;
-      border-radius: 50%;
-      border: 1px solid rgba(43,145,255,.08);
-      box-shadow: 0 0 100px rgba(8,103,232,.08), inset 0 0 100px rgba(8,103,232,.05);
-      animation: loaderAura 3.2s ease-in-out infinite;
-    }
-    .loading-screen.is-hidden {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-    .loading-core {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      justify-items: center;
-      gap: 16px;
-      text-align: center;
-    }
-    .loading-mark {
-      position: relative;
-      width: clamp(88px, 9vw, 126px);
-      aspect-ratio: 1;
-      display: grid;
-      place-items: center;
-    }
-    .loading-ring,
-    .loading-ring::before {
-      position: absolute;
-      content: "";
-      inset: 0;
-      border-radius: 50%;
-      border: 2px solid transparent;
-      border-top-color: var(--blue-light);
-      border-right-color: rgba(43,145,255,.18);
-      filter: drop-shadow(0 0 10px rgba(43,145,255,.4));
-      animation: loaderSpin 1.65s linear infinite;
-    }
-    .loading-ring::before {
-      inset: 9px;
-      border-top-color: var(--orange);
-      border-right-color: rgba(255,114,0,.14);
-      animation-direction: reverse;
-      animation-duration: 1.15s;
-      filter: drop-shadow(0 0 9px rgba(255,114,0,.38));
-    }
-    .loading-star {
-      width: 48%;
-      height: 48%;
-      object-fit: contain;
-      filter: drop-shadow(0 0 16px rgba(43,145,255,.58));
-      animation: loaderPulse 1.45s ease-in-out infinite;
-    }
-    .loading-title {
-      margin: 0;
-      color: var(--white);
-      font-size: clamp(19px, 1.65vw, 27px);
-      font-weight: 900;
-      letter-spacing: -.02em;
-    }
-    .loading-title b { color: var(--orange-light); }
-    .loading-copy {
-      margin: -7px 0 0;
-      color: var(--muted);
-      font-size: clamp(11px, .8vw, 14px);
-      font-weight: 650;
-      letter-spacing: .04em;
-    }
-    .loading-dots { display: flex; gap: 7px; height: 8px; align-items: center; }
-    .loading-dots i {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--blue-light);
-      box-shadow: 0 0 10px rgba(43,145,255,.55);
-      animation: loaderDot 1.05s ease-in-out infinite;
-    }
-    .loading-dots i:nth-child(2) { animation-delay: .14s; background: var(--orange); box-shadow: 0 0 10px rgba(255,114,0,.55); }
-    .loading-dots i:nth-child(3) { animation-delay: .28s; }
-
-    .painel.is-refreshing .equipe-card,
-    .painel.is-refreshing .total-card {
-      animation: cardRefresh .7s cubic-bezier(.2,.8,.2,1) both;
-    }
-    .painel.is-refreshing .equipe-card:nth-child(2) { animation-delay: .025s; }
-    .painel.is-refreshing .equipe-card:nth-child(3) { animation-delay: .05s; }
-    .painel.is-refreshing .equipe-card:nth-child(4) { animation-delay: .075s; }
-    .painel.is-refreshing .equipe-card:nth-child(5) { animation-delay: .10s; }
-    .painel.is-refreshing .equipe-card:nth-child(6) { animation-delay: .125s; }
-    .painel.is-refreshing .equipe-card:nth-child(7) { animation-delay: .15s; }
-    .painel.is-refreshing .equipe-card:nth-child(8) { animation-delay: .175s; }
-
-    @keyframes loaderSpin { to { transform: rotate(360deg); } }
-    @keyframes loaderPulse { 50% { transform: scale(1.08); filter: drop-shadow(0 0 24px rgba(255,114,0,.42)); } }
-    @keyframes loaderAura { 50% { transform: scale(1.07); opacity: .58; } }
-    @keyframes loaderDot { 0%,100% { transform: translateY(0) scale(.72); opacity:.45; } 50% { transform: translateY(-5px) scale(1); opacity:1; } }
-    @keyframes cardRefresh { 0% { opacity:.42; transform: scale(.985) translateY(4px); filter: blur(1.5px); } 100% { opacity:1; transform:none; filter:none; } }
-
-    @media (prefers-reduced-motion: reduce) {
-      .loading-ring, .loading-ring::before, .loading-star, .loading-screen::before, .loading-dots i,
-      .painel.is-refreshing .equipe-card, .painel.is-refreshing .total-card { animation: none !important; }
-    }
-
   </style>
 </head>
-<body>\n  <div class="loading-screen" id="loadingScreen" role="status" aria-live="polite" aria-label="Carregando times">
-    <div class="loading-core">
-      <div class="loading-mark" aria-hidden="true">
-        <span class="loading-ring"></span>
-        <img class="loading-star" src="favicon-unifahe.png" alt="">
-      </div>
-      <p class="loading-title">Carregando <b>times</b></p>
-      <p class="loading-copy" id="loadingCopy">Sincronizando resultados comerciais</p>
-      <span class="loading-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-    </div>
-  </div>
-
+<body>
   <main class="shell">
     <div class="layout">
       <header class="topbar">
@@ -1160,9 +1024,6 @@
     ];
 
     const painel = document.getElementById("painel");
-    const loadingScreen = document.getElementById("loadingScreen");
-    const loadingCopy = document.getElementById("loadingCopy");
-    let primeiraCarga = true;
     const periodoEl = document.getElementById("periodo");
     const ultimaAtualizacaoEl = document.getElementById("ultimaAtualizacao");
     const liveBadge = document.getElementById("liveBadge");
@@ -1402,22 +1263,10 @@
       ultimaAtualizacaoEl.textContent = detalhe;
     }
 
-    function marcarCarregamento(ativo, { inicial = false } = {}) {
-      // Na primeira abertura, o painel inteiro recebe uma tela de entrada.
-      if (inicial && loadingScreen) {
-        loadingScreen.classList.toggle("is-hidden", !ativo);
-        if (loadingCopy && ativo) loadingCopy.textContent = "Sincronizando resultados comerciais";
-      }
-
-      // Nas trocas manuais de semana/mês, preserva os cards na tela e
-      // aplica uma transição curta; não usa mais o shimmer nos valores.
-      if (!inicial) painel.classList.toggle("is-refreshing", ativo);
-    }
-
-    function encerrarTelaInicial() {
-      if (!loadingScreen || !primeiraCarga) return;
-      primeiraCarga = false;
-      window.setTimeout(() => loadingScreen.classList.add("is-hidden"), 180);
+    function marcarCarregamento(ativo) {
+      document.querySelectorAll(".valor-integrante").forEach(el => {
+        el.classList.toggle("loading", ativo);
+      });
     }
 
     function carregarJsonp(url, { modo, semana, mes, ano }, timeoutMs = 12000) {
@@ -1470,7 +1319,7 @@
         return;
       }
 
-      if (!silencioso) marcarCarregamento(true, { inicial: primeiraCarga });
+      if (!silencioso) marcarCarregamento(true);
 
       definirStatus(
         "online",
@@ -1522,15 +1371,6 @@
         renderizarPainel();
         atualizarCabecalho();
 
-        if (!silencioso && !primeiraCarga) {
-          // Reaplica a animação aos cards recém-renderizados.
-          painel.classList.remove("is-refreshing");
-          void painel.offsetWidth;
-          painel.classList.add("is-refreshing");
-          window.setTimeout(() => painel.classList.remove("is-refreshing"), 760);
-        }
-        encerrarTelaInicial();
-
         const horario = new Date().toLocaleTimeString("pt-BR", {
           hour: "2-digit",
           minute: "2-digit",
@@ -1545,11 +1385,10 @@
       } catch (erro) {
         if (idRequisicao !== requisicaoAtual) return;
         definirStatus("error", "Falha na conexão", erro.message || "Erro ao atualizar os dados.");
-        encerrarTelaInicial();
         console.error(erro);
       } finally {
         if (idRequisicao === requisicaoAtual) {
-          marcarCarregamento(false, { inicial: primeiraCarga });
+          marcarCarregamento(false);
         }
       }
     }

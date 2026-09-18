@@ -383,6 +383,15 @@ var CONFIG_METAS_EQUIPES = {
     semana3: 32675,
     semana4: 28450,
     semana5: 50000
+  },
+
+  // ELITE — preencha as metas quando definir os valores do time.
+  elite: {
+    semana1: 0,
+    semana2: 0,
+    semana3: 0,
+    semana4: 0,
+    semana5: 0
   }
 };
 
@@ -496,6 +505,12 @@ var CONFIG_MEMBROS_EQUIPES = {
       "Alana Santos",
       "Eduardo Rogério"
     ]
+  },
+
+  // ELITE — deixe vazio ou adicione os vendedores aqui quando definir o time.
+  elite: {
+    padrao: [],
+    semana1: []
   }
 };
 
